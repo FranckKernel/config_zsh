@@ -4,16 +4,14 @@ exec_once_file="$HOME/.zprofile"
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+	source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
 
 export AF_OPENCL_DEFAULT_DEVICE=1
 export PYOPENCL_CTX="0:1"
-export HCC_AMDGPU_TARGET=gfx1031  # Critical for RDNA 2 GPUs
+export HCC_AMDGPU_TARGET=gfx1031 # Critical for RDNA 2 GPUs
 export CUPY_INSTALL_USE_HIP=1
-export ROCM_HOME=/opt/rocm  # Ensure ROCm path is set
-
+export ROCM_HOME=/opt/rocm # Ensure ROCm path is set
 
 # ROCm (HIP/AMD toolchain)
 [[ -n "$ROCM_HOME" && -d "$ROCM_HOME/bin" && ":$PATH:" != *":$ROCM_HOME/bin:"* ]] && PATH="$ROCM_HOME/bin:$PATH"
@@ -22,6 +20,17 @@ export PATH # Ensure hipcc is in PAT
 
 # echo "missing to add local paths (and not just repo path for git filter_remove), though adding it might be a bad idea. Sleep on it and"
 # echo "implement it later."
+
+function reset_path() {
+	return 1
+	# I think somehow, this with shellcheck, leads to major system instability, and crashes
+	# nvim ~/.zshrc cause shellcheck to apply to /, which tries to read the whole system, it doesn't close and it takes ever
+	# increasing memory and disk space. I think that is a bug on a new version of shellcheck
+	PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+	# not quite working, must source env once more?
+	source "$HOME/.zshrc"
+	source "$HOME/.zshenv"
+}
 
 # ─────────────────────────────────────────────────────
 # 🛠️ 1️⃣ Zsh & Environment Configuration
@@ -34,15 +43,14 @@ export ZSH="$HOME/.oh-my-zsh"
 # ZSH_THEME="fletcherm"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-
 # Plugins
 plugins=(
 	# virtualenvwrapper
-    zsh-syntax-highlighting
+	zsh-syntax-highlighting
 	zsh-autosuggestions
 )
 
-    # git
+# git
 
 # Source Oh My Zsh
 source $ZSH/oh-my-zsh.sh
@@ -51,33 +59,29 @@ source $ZSH/oh-my-zsh.sh
 export TERMINAL=kitty
 export EDITOR=nvim
 
-
 # Determine the flag based on the editor
 if [[ "$EDITOR" == "nvim" ]]; then
-    EDITOR_FLAG="--cmd \"autocmd VimEnter * CdHere\""  # Only for nvim
+	EDITOR_FLAG="--cmd \"autocmd VimEnter * CdHere\"" # Only for nvim
 else
-    EDITOR_FLAG=""  # No flag for other editors
+	EDITOR_FLAG="" # No flag for other editors
 fi
-
 
 openrc() {
 	# Open a file, and cd to it inside neovim
-    local file=$1
-    if [[ "$EDITOR" == "nvim" ]]; then
-        "$EDITOR" --cmd 'autocmd VimEnter * CdHere' "$file"
-    else
-        "$EDITOR" "$file"
-    fi
+	local file=$1
+	if [[ "$EDITOR" == "nvim" ]]; then
+		"$EDITOR" --cmd 'autocmd VimEnter * CdHere' "$file"
+	else
+		"$EDITOR" "$file"
+	fi
 }
 
 # Determine the flag based on the editor
 if [[ "$EDITOR" == "nvim" ]]; then
-    EDITOR_FLAG="--cmd \"autocmd VimEnter * CdHere\""  # Only for nvim
+	EDITOR_FLAG="--cmd \"autocmd VimEnter * CdHere\"" # Only for nvim
 else
-    EDITOR_FLAG=""  # No flag for other editors
+	EDITOR_FLAG="" # No flag for other editors
 fi
-
-
 
 alias v="nvim"
 alias vr="nvim -c 'set readonly'"
@@ -85,30 +89,21 @@ alias vim="nvim"
 alias ovim="/usr/bin/vim"
 alias pvim="nvim --startuptime ~/.config/nvim_logs/startup.log"
 
-
 bindkey -s '^F' 'lf\n'
 bindkey -r '^L'
 bindkey '^G' clear-screen
-
-
-
 
 alias slf="sudo -E lf"
 alias svim="sudo -E nvim"
 # fuck nano!
 alias nano="nvim"
 sudo() {
-    if [[ $# -gt 0 && "$1" == "nano" ]]; then
-        command sudo -E nvim "${@:2}"
-    else
-        command sudo "$@"
-    fi
+	if [[ $# -gt 0 && "$1" == "nano" ]]; then
+		command sudo -E nvim "${@:2}"
+	else
+		command sudo "$@"
+	fi
 }
-
-
-
-
-
 
 # ─────────────────────────────────────────────────────
 # 🛠️  Initialize CLI Tools (With Warnings)
@@ -119,28 +114,27 @@ sudo() {
 #     echo "⚠️ Warning: Failed to initialize 'thefuck'"
 # fi
 
-# Initialize zoxide. You don't need perfect path for cd. You can cd "bunch of keywords" and it will find the dir 
+# Initialize zoxide. You don't need perfect path for cd. You can cd "bunch of keywords" and it will find the dir
 if ! eval "$(zoxide init zsh)"; then
-    echo "⚠️ Warning: Failed to initialize 'zoxide'"
+	echo "⚠️ Warning: Failed to initialize 'zoxide'"
 fi
 
 # Initialize atuin. Makes the command history good and not suck. Control R works.
 # I disabled up arrows but you can change that
 if ! eval "$(atuin init zsh --disable-up-arrow)"; then
-    echo "⚠️ Warning: Failed to initialize 'atuin'"
+	echo "⚠️ Warning: Failed to initialize 'atuin'"
 fi
 
 # Allow q for cd and quit
 # Source LF Configuration (With Error Handling)
 if [[ -f ~/.config/lf/lf.zsh ]]; then
-    if ! source ~/.config/lf/lf.zsh; then
-        echo "⚠️ Warning: Failed to source ~/.config/lf/lf.zsh"
-    fi
+	if ! source ~/.config/lf/lf.zsh; then
+		echo "⚠️ Warning: Failed to source ~/.config/lf/lf.zsh"
+	fi
 else
-    echo "⚠️ Warning: LF config file not found: ~/.config/lf/lf.zsh"
+	echo "⚠️ Warning: LF config file not found: ~/.config/lf/lf.zsh"
 	echo "Try doing the ./install_lf"
 fi
-
 
 # ─────────────────────────────────────────────────────
 # 🌐 2️⃣ Universal Clipboard Configuration
@@ -148,80 +142,76 @@ fi
 
 # Detect Display Server (Wayland, X11, macOS)
 if [[ -z "$XDG_SESSION_TYPE" ]]; then
-    if [[ -n "$WAYLAND_DISPLAY" ]]; then
-        DISPLAY_SERVER="wayland"
-    elif [[ -n "$DISPLAY" ]]; then
-        DISPLAY_SERVER="x11"
-    else
-        DISPLAY_SERVER="unknown"
-    fi
+	if [[ -n "$WAYLAND_DISPLAY" ]]; then
+		DISPLAY_SERVER="wayland"
+	elif [[ -n "$DISPLAY" ]]; then
+		DISPLAY_SERVER="x11"
+	else
+		DISPLAY_SERVER="unknown"
+	fi
 else
-    DISPLAY_SERVER="$XDG_SESSION_TYPE"
+	DISPLAY_SERVER="$XDG_SESSION_TYPE"
 fi
 
 # Clipboard Aliases (Wayland, X11, macOS)
 if [[ "$DISPLAY_SERVER" == "wayland" ]]; then
-    alias c="wl-copy"
-    # alias paste="wl-paste --type text/plain"
-    alias p="wl-paste --type text/plain"
+	alias c="wl-copy"
+	# alias paste="wl-paste --type text/plain"
+	alias p="wl-paste --type text/plain"
 elif [[ "$DISPLAY_SERVER" == "x11" ]]; then
-    alias c="xclip -selection clipboard"
-    # alias paste="xclip -selection clipboard -o"
-    alias p="xclip -selection clipboard -o"
+	alias c="xclip -selection clipboard"
+	# alias paste="xclip -selection clipboard -o"
+	alias p="xclip -selection clipboard -o"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    alias c="pbcopy"
-    # alias paste="pbpaste"
-    alias p="pbpaste"
+	alias c="pbcopy"
+	# alias paste="pbpaste"
+	alias p="pbpaste"
 else
-    echo "Warning: Unknown display server or unsupported OS!"
+	echo "Warning: Unknown display server or unsupported OS!"
 fi
 
 alias opaste="/usr/bin/paste"
 
 # Copy image to clipboard (Wayland/X11)
 img2clip() {
-  if [[ $# -eq 0 ]]; then
-    echo "Usage: img2clip <image-path>"
-    return 1
-  fi
+	if [[ $# -eq 0 ]]; then
+		echo "Usage: img2clip <image-path>"
+		return 1
+	fi
 
-  local IMAGE_PATH="$1"
+	local IMAGE_PATH="$1"
 
-  # Check if file exists
-  if [[ ! -f "$IMAGE_PATH" ]]; then
-    echo "Error: File '$IMAGE_PATH' not found."
-    return 1
-  fi
+	# Check if file exists
+	if [[ ! -f "$IMAGE_PATH" ]]; then
+		echo "Error: File '$IMAGE_PATH' not found."
+		return 1
+	fi
 
-  # Detect MIME type
-  local MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH" 2>/dev/null)
+	# Detect MIME type
+	local MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH" 2>/dev/null)
 
-  # Verify it's an image
-  if [[ ! "$MIME_TYPE" =~ ^image/ ]]; then
-    echo "Error: '$IMAGE_PATH' is not an image (MIME: ${MIME_TYPE:-unknown})."
-    return 1
-  fi
+	# Verify it's an image
+	if [[ ! "$MIME_TYPE" =~ ^image/ ]]; then
+		echo "Error: '$IMAGE_PATH' is not an image (MIME: ${MIME_TYPE:-unknown})."
+		return 1
+	fi
 
-  # Try wl-copy (Wayland) first, fall back to xclip (X11)
-  if command -v wl-copy &>/dev/null; then
-    wl-copy < "$IMAGE_PATH" && echo "✅ Image copied to clipboard (Wayland)."
-  elif command -v xclip &>/dev/null; then
-    xclip -selection clipboard -t "$MIME_TYPE" < "$IMAGE_PATH" && echo "✅ Image copied to clipboard (X11)."
-  else
-    echo "Error: Install 'wl-clipboard' (Wayland) or 'xclip' (X11)."
-    return 1
-  fi
+	# Try wl-copy (Wayland) first, fall back to xclip (X11)
+	if command -v wl-copy &>/dev/null; then
+		wl-copy <"$IMAGE_PATH" && echo "✅ Image copied to clipboard (Wayland)."
+	elif command -v xclip &>/dev/null; then
+		xclip -selection clipboard -t "$MIME_TYPE" <"$IMAGE_PATH" && echo "✅ Image copied to clipboard (X11)."
+	else
+		echo "Error: Install 'wl-clipboard' (Wayland) or 'xclip' (X11)."
+		return 1
+	fi
 }
-
-
 
 hyprland_switch() {
 	fish -c "kmux"
 	# tmux kill-server
 	tmux setenv -g HYPRLAND_INSTANCE_SIGNATURE "$HYPRLAND_INSTANCE_SIGNATURE"
 }
-
-
 
 # ─────────────────────────────────────────────────────
 # 🚀 3️⃣ Python Virtual Environments
@@ -230,170 +220,171 @@ hyprland_switch() {
 # Define the base directory for Python virtual environments (from pip)
 PYTHON_VENV_DIR="$HOME/.pip_venvs/"
 
-
 function pip_create() {
-    if [[ -z "$1" ]]; then
-        echo "❌ Usage: pip_create <venv_name> <version>"
-        return 1
-    fi
+	if [[ -z "$1" ]]; then
+		echo "❌ Usage: pip_create <venv_name> <version>"
+		return 1
+	fi
 	mkdir -p "$PYTHON_VENV_DIR"
-    VENV_PATH="$PYTHON_VENV_DIR/$1"
+	VENV_PATH="$PYTHON_VENV_DIR/$1"
 
-    if [[ -d "$VENV_PATH" ]]; then
-        echo "⚠️ Virtual environment '$1' already exists at $VENV_PATH"
-    else
-        python -m venv "$VENV_PATH"
-        echo "✅ Virtual environment '$1' created at $VENV_PATH"
-    fi
+	if [[ -d "$VENV_PATH" ]]; then
+		echo "⚠️ Virtual environment '$1' already exists at $VENV_PATH"
+	else
+		python -m venv "$VENV_PATH"
+		echo "✅ Virtual environment '$1' created at $VENV_PATH"
+	fi
 }
 
 function pip_create_version() {
-  if [[ -z "$1" ]]; then
-        echo "❌ Usage: pip_create <venv_name> [python_version]"
-        return 1
-    fi
+	if [[ -z "$1" ]]; then
+		echo "❌ Usage: pip_create <venv_name> [python_version]"
+		return 1
+	fi
 
-    local venv_name="$1"
+	local venv_name="$1"
 	# pass stuff like 3.12 , 3.12.11
-    local requested_version="${2:-system}"  # Default to system Python
+	local requested_version="${2:-system}" # Default to system Python
 
-    mkdir -p "$PYTHON_VENV_DIR"
-    local VENV_PATH="$PYTHON_VENV_DIR/$venv_name"
+	mkdir -p "$PYTHON_VENV_DIR"
+	local VENV_PATH="$PYTHON_VENV_DIR/$venv_name"
 
-    if [[ -d "$VENV_PATH" ]]; then
-        echo "⚠️ Virtual environment '$venv_name' already exists at $VENV_PATH"
-        return 0
-    fi
+	if [[ -d "$VENV_PATH" ]]; then
+		echo "⚠️ Virtual environment '$venv_name' already exists at $VENV_PATH"
+		return 0
+	fi
 
-    if [[ "$requested_version" == "system" ]]; then
-        python_exe="python"
-    else
-        # Check if pyenv is installed
-        if ! command -v pyenv >/dev/null 2>&1; then
-            echo "❌ pyenv is not installed or not in PATH."
-            return 1
-        fi
+	if [[ "$requested_version" == "system" ]]; then
+		python_exe="python"
+	else
+		# Check if pyenv is installed
+		if ! command -v pyenv >/dev/null 2>&1; then
+			echo "❌ pyenv is not installed or not in PATH."
+			return 1
+		fi
 
-        # Find all installed versions matching the requested prefix
-        local installed_versions
-        installed_versions=$(pyenv versions --bare | grep "^${requested_version}")
+		# Find all installed versions matching the requested prefix
+		local installed_versions
+		installed_versions=$(pyenv versions --bare | grep "^${requested_version}")
 
-        if [[ -z "$installed_versions" ]]; then
-            echo "🐍 No installed Python versions matching '$requested_version' found. Installing latest available..."
+		if [[ -z "$installed_versions" ]]; then
+			echo "🐍 No installed Python versions matching '$requested_version' found. Installing latest available..."
 
-            # Find latest installable version from pyenv install --list
-            local latest_version
-            latest_version=$(pyenv install --list | sed 's/^[[:space:]]*//' | grep "^${requested_version}" | tail -1)
+			# Find latest installable version from pyenv install --list
+			local latest_version
+			latest_version=$(pyenv install --list | sed 's/^[[:space:]]*//' | grep "^${requested_version}" | tail -1)
 
-            if [[ -z "$latest_version" ]]; then
-                echo "❌ Could not find any Python versions starting with '$requested_version' to install."
-                return 1
-            fi
+			if [[ -z "$latest_version" ]]; then
+				echo "❌ Could not find any Python versions starting with '$requested_version' to install."
+				return 1
+			fi
 
-            echo "🐍 Installing Python $latest_version via pyenv..."
-            pyenv install "$latest_version" || { echo "❌ Failed to install Python $latest_version"; return 1; }
-            python_exe="$(pyenv root)/versions/$latest_version/bin/python"
-        else
-            # Use the latest installed patch version from the installed versions list
-            local latest_installed_version
-            latest_installed_version=$(echo "$installed_versions" | sort -V | tail -1)
+			echo "🐍 Installing Python $latest_version via pyenv..."
+			pyenv install "$latest_version" || {
+				echo "❌ Failed to install Python $latest_version"
+				return 1
+			}
+			python_exe="$(pyenv root)/versions/$latest_version/bin/python"
+		else
+			# Use the latest installed patch version from the installed versions list
+			local latest_installed_version
+			latest_installed_version=$(echo "$installed_versions" | sort -V | tail -1)
 
-            read -rp "🐍 Python version '$latest_installed_version' matching '$requested_version' is already installed. Continue using it? [Y/n] " confirm
-            confirm=${confirm:-Y}
-            if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-                echo "❎ Aborting virtualenv creation."
-                return 1
-            fi
+			read -rp "🐍 Python version '$latest_installed_version' matching '$requested_version' is already installed. Continue using it? [Y/n] " confirm
+			confirm=${confirm:-Y}
+			if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+				echo "❎ Aborting virtualenv creation."
+				return 1
+			fi
 
-            python_exe="$(pyenv root)/versions/$latest_installed_version/bin/python"
-        fi
+			python_exe="$(pyenv root)/versions/$latest_installed_version/bin/python"
+		fi
 
-        # Check if python_exe exists and is executable
-        if [[ ! -x "$python_exe" ]]; then
-            echo "❌ Python executable not found at $python_exe"
-            return 1
-        fi
-    fi
+		# Check if python_exe exists and is executable
+		if [[ ! -x "$python_exe" ]]; then
+			echo "❌ Python executable not found at $python_exe"
+			return 1
+		fi
+	fi
 
-    echo "🛠 Creating virtual environment '$venv_name' with Python executable: $python_exe ..."
-    "$python_exe" -m venv "$VENV_PATH" || { echo "❌ Failed to create virtualenv"; return 1; }
+	echo "🛠 Creating virtual environment '$venv_name' with Python executable: $python_exe ..."
+	"$python_exe" -m venv "$VENV_PATH" || {
+		echo "❌ Failed to create virtualenv"
+		return 1
+	}
 
-    echo "✅ Virtual environment '$venv_name' created at $VENV_PATH"
+	echo "✅ Virtual environment '$venv_name' created at $VENV_PATH"
 }
 
-
-
 function pip_activate() {
-    if [[ -z "$1" ]]; then
-        echo "❌ Usage: pip_activate <venv_name>"
-        return 1
-    fi
-    VENV_PATH="$PYTHON_VENV_DIR/$1"
-    if [[ -d "$VENV_PATH" ]]; then
-        source "$VENV_PATH/bin/activate"
-        echo "✅ Activated virtual environment: $1"
-    else
-        echo "❌ Virtual environment '$1' does not exist in $PYTHON_VENV_DIR"
-    fi
+	if [[ -z "$1" ]]; then
+		echo "❌ Usage: pip_activate <venv_name>"
+		return 1
+	fi
+	VENV_PATH="$PYTHON_VENV_DIR/$1"
+	if [[ -d "$VENV_PATH" ]]; then
+		source "$VENV_PATH/bin/activate"
+		echo "✅ Activated virtual environment: $1"
+	else
+		echo "❌ Virtual environment '$1' does not exist in $PYTHON_VENV_DIR"
+	fi
 }
 
 function pip_delete() {
-    if [[ -z "$1" ]]; then
-        echo "❌ Usage: pip_delete <venv_name>"
-        return 1
-    fi
+	if [[ -z "$1" ]]; then
+		echo "❌ Usage: pip_delete <venv_name>"
+		return 1
+	fi
 
-    local VENV_PATH="${PYTHON_VENV_DIR%/}/$1"
+	local VENV_PATH="${PYTHON_VENV_DIR%/}/$1"
 
-    # Safety checks
-    if [[ ! -d "$VENV_PATH" ]]; then
-        echo "❌ Virtual environment '$1' does not exist in $PYTHON_VENV_DIR"
-        return 2
-    fi
+	# Safety checks
+	if [[ ! -d "$VENV_PATH" ]]; then
+		echo "❌ Virtual environment '$1' does not exist in $PYTHON_VENV_DIR"
+		return 2
+	fi
 
-    case "$VENV_PATH" in
-        "$HOME"/*) ;;  # ok
-        *)
-            echo "❌ Refusing to delete outside HOME directory: $VENV_PATH"
-            return 3
-            ;;
-    esac
+	case "$VENV_PATH" in
+	"$HOME"/*) ;; # ok
+	*)
+		echo "❌ Refusing to delete outside HOME directory: $VENV_PATH"
+		return 3
+		;;
+	esac
 
 	local relpath="${VENV_PATH#"$HOME"/}"
 
-    # Count slashes in relpath separately to avoid masking return values
-    local count_slashes
-    count_slashes=$(echo "$relpath" | awk -F/ '{print NF}')
+	# Count slashes in relpath separately to avoid masking return values
+	local count_slashes
+	count_slashes=$(echo "$relpath" | awk -F/ '{print NF}')
 
-    if (( count_slashes < 2 )); then
-        echo "❌ Directory depth too shallow to delete safely: $VENV_PATH"
-        echo "   Expected something like $HOME/some_folder/venv_name"
-        return 4
-    fi
+	if ((count_slashes < 2)); then
+		echo "❌ Directory depth too shallow to delete safely: $VENV_PATH"
+		echo "   Expected something like $HOME/some_folder/venv_name"
+		return 4
+	fi
 
-    # Prompt for confirmation - read with -r to avoid backslash mangling
+	# Prompt for confirmation - read with -r to avoid backslash mangling
 	echo -n "⚠️ Are you sure you want to delete the virtual environment '$1' at ($VENV_PATH)? [y/N] "
-    read -r confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        rm -rf -- "$VENV_PATH"
-        echo "🗑️ Deleted virtual environment: $1"
-    else
-        echo "❎ Deletion cancelled."
-    fi
+	read -r confirm
+	if [[ "$confirm" =~ ^[Yy]$ ]]; then
+		rm -rf -- "$VENV_PATH"
+		echo "🗑️ Deleted virtual environment: $1"
+	else
+		echo "❎ Deletion cancelled."
+	fi
 }
 
 # List all virtual environments
 function pip_list() {
-    if [[ ! -d "$PYTHON_VENV_DIR" ]]; then
-        echo "❌ Directory $PYTHON_VENV_DIR does not exist"
-        return 1
-    fi
+	if [[ ! -d "$PYTHON_VENV_DIR" ]]; then
+		echo "❌ Directory $PYTHON_VENV_DIR does not exist"
+		return 1
+	fi
 
-    echo "📦 Virtual environments in $PYTHON_VENV_DIR:"
-    find "$PYTHON_VENV_DIR" -mindepth 1 -maxdepth 1 -type d -printf " - %f\n"
+	echo "📦 Virtual environments in $PYTHON_VENV_DIR:"
+	find "$PYTHON_VENV_DIR" -mindepth 1 -maxdepth 1 -type d -printf " - %f\n"
 }
-
-
 
 # Use a venv's Python without activating it
 alias pythonvenv="$PYTHON_VENV_DIR/pip_venv/bin/python"
@@ -406,29 +397,25 @@ alias projvenv="pip_activate project_venv"
 # Deactivate the current virtual environment
 alias lvenv="deactivate"
 
-
-
-
 conda_activate() {
-    local conda_path="$HOME/miniconda3/bin/conda"
-    
-    if [[ -x "$conda_path" ]]; then
+	local conda_path="$HOME/miniconda3/bin/conda"
+
+	if [[ -x "$conda_path" ]]; then
 		eval "$("$conda_path" "shell.zsh" "hook")" # activate conda (base)
-    else
-        echo "❌ Error: Conda not found at $conda_path"
-    fi
+	else
+		echo "❌ Error: Conda not found at $conda_path"
+	fi
 }
 
-
 conda_master() {
-    local conda_path="$HOME/miniconda3/bin/conda"
-    
-    if [[ -x "$conda_path" ]]; then
+	local conda_path="$HOME/miniconda3/bin/conda"
+
+	if [[ -x "$conda_path" ]]; then
 		eval "$("$conda_path" "shell.zsh" "hook")" # activate conda (base)
-		conda activate master_venv # activate conda (master_venv)
-    else
-        echo "❌ Error: Conda not found at $conda_path"
-    fi
+		conda activate master_venv                 # activate conda (master_venv)
+	else
+		echo "❌ Error: Conda not found at $conda_path"
+	fi
 }
 
 conda_create() {
@@ -443,22 +430,17 @@ alias conda_load="conda env create -f environment.yml"
 alias pip_dump="pip freeze > requirements.txt"
 alias pip_load="pip install -r requirements.txt"
 
-
 # possibly, you can just straight up do: "conda activate master_venv"
 # but that's only gonna happen if conda_path was exported to path
 # And that might fuck up some system wide install, because it tries to use that version of python
 # rather then your system wide python, which is what should be used for system updates and operation
 
-# Keeping the bellow commented out. With it commented out, conda activate master_venv won't work. because 
+# Keeping the bellow commented out. With it commented out, conda activate master_venv won't work. because
 # conda is unknown command. With it not commented out, it will work. But see warning paragraph above
 # export PATH="$HOME/miniconda3/bin/conda:$PATH"
 
-
-
-
-
 #---------------------------------------------------------------------------------------------
-# A premade wrapper: 
+# A premade wrapper:
 # These don't work with conda so they are kinda useless for you... But it does make some python stuff
 # Easier I guess if you want to use that rather then my venvs example alias
 # Like in further project where you'd rather use pip packages then conda packages
@@ -479,16 +461,14 @@ fi
 # cdvirtualenv			Go to the active virtual environment's directory
 # cdsitepackages		Navigate to the site-packages directory
 
-
 # ─────────────────────────────────────────────────────
 # 📁 4️⃣ Navigation & Directory Shortcuts
 # ─────────────────────────────────────────────────────
 
 # This requires z oxide. It's a much better cd (see source comment at top of file)
-alias cd="z"  # better cd
+alias cd="z"   # better cd
 alias ls="lsd" # better ls
 alias ols="/usr/bin/ls"
-
 
 alias eva="eza" # another colored version of ls
 alias ll='lsd -al'
@@ -496,14 +476,13 @@ alias la='lsd -a'
 alias lsdir='lsd -d */'
 alias lsa="lsd -a"
 
-
 function ftypes_full() {
 	# The file types in the current dir
 	emulate -L zsh
 	setopt null_glob
 
-	typeset -A counts  # associative array
-	for f in *(.); do  # (.) = plain files only
+	typeset -A counts # associative array
+	for f in *(.); do # (.) = plain files only
 		ext=${f##*.}
 		[[ $f == *.* ]] || ext="(no ext)"
 		((counts[$ext]++))
@@ -529,9 +508,6 @@ function ftypes() {
 
 	print "${(k)seen}"
 }
-
-
-
 
 alias ch='cd ~' # just doing "cd" will work by itself but idc
 alias cco="cd ~/.config"
@@ -566,20 +542,17 @@ alias cvi="cd ~/.config/vim "
 alias cV="cd ~/.config/vim "
 alias cns="cd ~/.config/nvim/pyrightconfig.json"
 
-
 # :TERMINAL MUSIC , rmpc. rmpc = better ncmpcpp
 
 # next to the xmods (not implemented here. but it is implemented)
 # alias rvmod="rv $HOME/.config/nvim/scripts/pythonScripts/open_remote_nvim.py"
 # alias svmod="rv $HOME/.config/nvim/scripts/pythonScripts/send_to_nvim.py"
 
-
 alias cdo="cd ~/Downloads"
 alias cdoc="cd ~/Documents"
 alias cm="cd ~/Music"
 alias cpi="cd ~/Pictures"
 alias cv="cd ~/Videos"
-
 
 alias chg="cd ~/home_for_git"
 alias ct="cd ~/.local/share/Trash/files"
@@ -599,7 +572,7 @@ alias cmod="$EDITOR $EDITOR_FLAG ~/.config/conky/show_all/show_all_conf"
 alias fmod="$EDITOR $EDITOR_FLAG ~/.config/fish/config.fish"
 alias gmod="$EDITOR ~/.config/gdb/.gdbinit"
 alias gdbmod="$EDITOR ~/.config/gdb/.gdbinit"
-alias hmod="$EDITOR $EDITOR_FLAG ~/.config/hypr/hyprland.conf"
+alias hmod="$EDITOR $EDITOR_FLAG ~/.config/hypr/hyprland.conf ~/.config/hypr/hyprland.lua"
 alias imod="$EDITOR $EDITOR_FLAG $HOME/.config/i3/config"
 alias irmod="$EDITOR $EDITOR_FLAG ~/.config/ironbar/"
 alias kamod="$EDITOR $EDITOR_FLAG ~/.config/kanata/kanata.kbd"
@@ -616,10 +589,7 @@ alias tcmod="$EDITOR $EDITOR_FLAG ~/.config/tmux-sessionizer/tmux-sessionizer.co
 alias tlmod="$EDITOR $EDITOR_FLAG ~/.local/tmux-sessionizer/tmux-sessionizer"
 alias vmod="$EDITOR $EDITOR_FLAG ~/.config/vim/.vimrc"
 alias wmod="$EDITOR $EDITOR_FLAG ~/.config/waybar/"
-alias zmod="$EDITOR $EDITOR_FLAG ~/.zshrc"
-alias zmod1="$EDITOR $EDITOR_FLAG ~/.zshrc1"
-
-
+alias zmod="$EDITOR $EDITOR_FLAG ~/.config/zsh/.zshrc"
 
 alias rvmod="rv $HOME/.config/nvim/scripts/pythonScripts/open_remote_nvim.py"
 alias svmod="rv $HOME/.config/nvim/scripts/pythonScripts/send_to_nvim.py"
@@ -627,7 +597,6 @@ alias svmod="rv $HOME/.config/nvim/scripts/pythonScripts/send_to_nvim.py"
 alias fview="bat ~/.fishrc"
 alias tview="bat ~/.tmuxrc"
 alias zview="bless ~/.zshrc"
-
 
 # ─────────────────────────────────────────────────────
 # 🔀 6️⃣ TMUX Configuration
@@ -647,15 +616,14 @@ alias ji="tmux select-pane -U"
 
 # Swap TMUX Panes
 tswap() {
-    if [[ $# -ne 2 ]]; then
-        echo "Usage: tswap pane1 pane2"
-        return 1
-    fi
-    local pane1="$1"
-    local pane2="$2"
-    tmux swap-pane -s "$pane1" -t "$pane2"
+	if [[ $# -ne 2 ]]; then
+		echo "Usage: tswap pane1 pane2"
+		return 1
+	fi
+	local pane1="$1"
+	local pane2="$2"
+	tmux swap-pane -s "$pane1" -t "$pane2"
 }
-
 
 tret() {
 	# reattach to a lost session i might have accidentally closed by doing a window kill
@@ -667,10 +635,10 @@ tret() {
 # 🔎 7️⃣ File Search & Clipboard Commands
 # ─────────────────────────────────────────────────────
 
-# Search a file with fzf, see its preview, and open it in 
+# Search a file with fzf, see its preview, and open it in
 # neovim to edit it
 fzfv() {
-    $EDITOR "$(fzf -m --preview='bat --color=always {} .')"
+	$EDITOR "$(fzf -m --preview='bat --color=always {} .')"
 
 }
 
@@ -678,53 +646,48 @@ alias fv="fzfv"
 
 # search for files with fzf with image preview and paste it to clipboard
 fzfi() {
-    fzf -m --preview='feh {}' | c
+	fzf -m --preview='feh {}' | c
 }
 
 fzfc() {
-    fzf -m --preview='bat --color=always {}' | c
+	fzf -m --preview='bat --color=always {}' | c
 }
 
 # copy a file text content to clipboard
 fcc() {
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: fcc <file> <<args>>"
-        return 1
-    fi
-    cat "$@" | c
+	if [[ $# -lt 1 ]]; then
+		echo "Usage: fcc <file> <<args>>"
+		return 1
+	fi
+	cat "$@" | c
 }
-
 
 # Find files with a name containing the given argument (case-insensitive)
-# This is dumb compared to the others but hey... 
+# This is dumb compared to the others but hey...
 # it could have a use
 findc() {
-    find . -iname "*$1*"
+	find . -iname "*$1*"
 }
-
 
 # mix rg with fzf
 fuzzy_find_content() {
-    local max_depth=${1:-3}
-    local query result
+	local max_depth=${1:-3}
+	local query result
 
-    query=$(rg --max-depth "$max_depth" --no-heading --column --line-number . 2>/dev/null | \
-        fzf --ansi --preview 'file=$(echo {} | cut -d: -f1); \
+	query=$(rg --max-depth "$max_depth" --no-heading --column --line-number . 2>/dev/null |
+		fzf --ansi --preview 'file=$(echo {} | cut -d: -f1); \
                               line=$(echo {} | cut -d: -f2); \
                               bat --color=always --highlight-line $line --line-range $((line-5)):$((line+5)) "$file"')
 
-    [[ -z "$query" ]] && return
+	[[ -z "$query" ]] && return
 
-    result=$(echo "$query" | awk -F: '{print $1 ":" $2}')
+	result=$(echo "$query" | awk -F: '{print $1 ":" $2}')
 
-    [[ -n "$result" ]] && ${EDITOR:-nvim} "+$(echo "$result" | cut -d: -f2)" "$(echo "$result" | cut -d: -f1)"
+	[[ -n "$result" ]] && ${EDITOR:-nvim} "+$(echo "$result" | cut -d: -f2)" "$(echo "$result" | cut -d: -f1)"
 }
-
-
 
 alias rgfzf="fuzzy_find_content"
 alias fzfrg="fuzzy_find_content"
-
 
 alias rgb="rg_better.py"
 
@@ -733,37 +696,60 @@ alias rgb="rg_better.py"
 # ─────────────────────────────────────────────────────
 
 # Find directories without depth restriction
-fcd() {
-    local search_term="$1"
-    local dir
-    dir=$(fd -t d --hidden --exclude .git "$search_term" | fzf)
-    [[ -n "$dir" ]] && cd "$dir" || return 1 
+dcd() {
+	local search_term="$1"
+	local dir
+	dir=$(fd -t d --hidden --exclude .git "$search_term" | fzf)
+	[[ -n "$dir" ]] && cd "$dir" || return 1
 }
 
-
 # Find directories with max depth = 1
-fcd1() {
-    local search_term="$1"
-    local dir
-    dir=$(fd -t d --hidden -d 1 "$search_term" | fzf)
-    [[ -n "$dir" ]] && cd "$dir"
+dcd1() {
+	local search_term="$1"
+	local dir
+	dir=$(fd -t d --hidden -d 1 "$search_term" | fzf)
+	[[ -n "$dir" ]] && cd "$dir"
 }
 
 # Find directories with specified depth
-fcdn() {
-    if [[ -z "$1" ]]; then
-        echo "Usage: fcdn <max-depth> [wildcard]"
-        return 1
-    fi
-    local depth="$1"
-    local search_term="${2:-}"
-    local dir
-    dir=$(fd -t d --hidden -d "$depth" "$search_term" | fzf)
-    [[ -n "$dir" ]] && cd "$dir"
+dcdn() {
+	if [[ -z "$1" ]]; then
+		echo "Usage: fcdn <max-depth> [wildcard]"
+		return 1
+	fi
+	local depth="$1"
+	local search_term="${2:-}"
+	local dir
+	dir=$(fd -t d --hidden -d "$depth" "$search_term" | fzf)
+	[[ -n "$dir" ]] && cd "$dir"
 }
 
+fcd() {
+	local file
 
+	file=$(find . -type f \
+		-not -path '*/.git/*' 2>/dev/null |
+		fzf --preview 'bat --style=numbers --color=always {} 2>/dev/null || cat {}' \
+			--prompt="File > ") || return
 
+	cd "${file:h}" || return
+}
+
+rgcd() {
+	local sel file
+
+	sel=$(
+		rg --line-number --no-heading --color=always . |
+			fzf --ansi \
+				--delimiter ':' \
+				--preview 'echo {} | cut -d: -f1 | xargs -I{} rg --color=always --line-number . "{}" | head -200' \
+				--prompt="Search > "
+	) || return
+
+	file="${sel%%:*}"
+
+	cd "${file:h}" || return
+}
 
 function cdf() {
 	# Cd to the directory of a file path
@@ -783,38 +769,32 @@ function cdf() {
 	cd -- "$target_dir" || return 3
 	echo "Changed to: $target_dir"
 
-} 
+}
 
 function cf() {
 	local file_path
 	file_path=$(fd . --type f --hidden --follow --exclude .git . | fzf --preview='bat --color=always {} .')
 	if [[ -n "$file_path" ]]; then
-		abs_path="$(realpath "$file_path")"      # convert to absolute path
-		cd "$(dirname "$abs_path")"              # cd to directory of absolute path
+		abs_path="$(realpath "$file_path")" # convert to absolute path
+		cd "$(dirname "$abs_path")"         # cd to directory of absolute path
 		nvim "$abs_path"
 	fi
 }
 
-
 alias ff="$HOME/.local/bin/fzf_filemanager"
 
 function symcd() {
-  cd "$(dirname "$(readlink -f "$1")")" || return 1
+	cd "$(dirname "$(readlink -f "$1")")" || return 1
 }
 
 alias cdsym="symcd"
 
-
-function cdn () {
-	# Zoxide cd to the nth highest score version. 
-    cd "$(zoxide query -i "$@")" || return
+function cdn() {
+	# Zoxide cd to the nth highest score version.
+	cd "$(zoxide query -i "$@")" || return
 }
 
 alias cdm="cdn"
-
-
-
-
 
 # ─────────────────────────────────────────────────────
 # 🛠️ 9️⃣ Git Functions & Aliases
@@ -827,61 +807,56 @@ unalias gcm 2>/dev/null
 
 alias find_git_submodules="find . -type d -name '.git'"
 
-
-# :proper way to dir to .config. 
-# :proper way to git submodule add 
-# :proper way to add git submodules 
-
+# :proper way to dir to .config.
+# :proper way to git submodule add
+# :proper way to add git submodules
 
 function git_submodule_add_test() {
 	mkdir -p ~/.config/test
 	cd ~/.config/test || return 1
 
-
 	git init
-	gh repo create config_test --public 
+	gh repo create config_test --public
 	git remote add origin ..config_test
 
 	git add .
 	git commit -m "Initial commit"
 	git push origin master
 
-
 	cd .. || return 1
 	git submodule add https://github.com/PoutineSyropErable/config_test test
 	# this step should transform the .git into a file
 }
 
-
 # Commit with a message
 gc() {
-    git commit -m "$1"
+	git commit -m "$1"
 }
 
 # Add, commit, and push with a message
 git_do_all() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: git_do_all <commit_message>"
-        return 1
-    fi
-    local commit_msg="$1"
-    git add .
-    git commit -m "$commit_msg"
-    git push origin "$(git branch --show-current)"
+	if [[ $# -eq 0 ]]; then
+		echo "Usage: git_do_all <commit_message>"
+		return 1
+	fi
+	local commit_msg="$1"
+	git add .
+	git commit -m "$commit_msg"
+	git push origin "$(git branch --show-current)"
 }
 
 # Commit & push all submodules and main repo
 git_push_all_msg() {
-    if [[ $# -eq 0 ]]; then
-        echo "Error: Commit message is required."
-        return 1
-    fi
-    local commit_message="$1"
+	if [[ $# -eq 0 ]]; then
+		echo "Error: Commit message is required."
+		return 1
+	fi
+	local commit_message="$1"
 
-    echo "🔄 Processing all submodules..."
-    echo "________________________________"
+	echo "🔄 Processing all submodules..."
+	echo "________________________________"
 
-    git submodule foreach --recursive '
+	git submodule foreach --recursive '
         echo "Updating submodule $name..."
         git add --all
         git commit -m "'"$commit_message"'" || echo "No changes to commit"
@@ -890,26 +865,25 @@ git_push_all_msg() {
     '
 
 	echo ""
-    echo "________________________________"
-    echo "🚀 Processing the main repository..."
-    git add --all
-    git commit -m "$commit_message" || echo "No changes to commit in root repository"
-    git push --recurse-submodules=on-demand origin "$(git branch --show-current)"
+	echo "________________________________"
+	echo "🚀 Processing the main repository..."
+	git add --all
+	git commit -m "$commit_message" || echo "No changes to commit in root repository"
+	git push --recurse-submodules=on-demand origin "$(git branch --show-current)"
 }
 
 # Push all with a hardcoded commit message
 git_push_all() {
-    git_push_all_msg "super push, root git dir and all submodules"
+	git_push_all_msg "super push, root git dir and all submodules"
 }
 
-
 git_pull_all() {
-    # Print processing message
-    printf "Processing all submodules...\n"
-    printf "________________________________\n\n"
+	# Print processing message
+	printf "Processing all submodules...\n"
+	printf "________________________________\n\n"
 
-    # Iterate over submodules and pull updates
-    git submodule foreach --recursive '
+	# Iterate over submodules and pull updates
+	git submodule foreach --recursive '
         echo "Updating submodule $name..."
         git pull origin $(git branch --show-current)
         printf "________________________________\n\n"
@@ -917,84 +891,81 @@ git_pull_all() {
 }
 
 function git_pull_remote_branch() {
-  local branch="$1"
+	local branch="$1"
 
-  if [[ -z "$branch" ]]; then
-    echo "Usage: git-pull-remote-branch <branch-name>"
-    return 1
-  fi
+	if [[ -z "$branch" ]]; then
+		echo "Usage: git-pull-remote-branch <branch-name>"
+		return 1
+	fi
 
-  # Fetch all branches from origin
-  git fetch origin
+	# Fetch all branches from origin
+	git fetch origin
 
-  # Check if the branch exists remotely
-  if git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
-    # Create a local branch tracking the remote branch
-    git checkout -b "$branch" "origin/$branch"
-  else
-    echo "Branch '$branch' does not exist on origin."
-    return 1
-  fi
+	# Check if the branch exists remotely
+	if git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
+		# Create a local branch tracking the remote branch
+		git checkout -b "$branch" "origin/$branch"
+	else
+		echo "Branch '$branch' does not exist on origin."
+		return 1
+	fi
 }
 
 git_diff_report() {
-  local good="$1"
-  local bad="$2"
-  local out_file="lazydev_lua_attach_issue.diff"
+	local good="$1"
+	local bad="$2"
+	local out_file="lazydev_lua_attach_issue.diff"
 
-  if [[ -z "$good" || -z "$bad" ]]; then
-    echo "Usage: git_diff_report <good_commit> <bad_commit>"
-    return 1
-  fi
+	if [[ -z "$good" || -z "$bad" ]]; then
+		echo "Usage: git_diff_report <good_commit> <bad_commit>"
+		return 1
+	fi
 
-  git diff "$good" "$bad" > "$out_file"
-  echo "Diff saved to $out_file"
+	git diff "$good" "$bad" >"$out_file"
+	echo "Diff saved to $out_file"
 }
 
 function dirdiff() {
-  # Usage: dirdiff [options] dir1 dir2
-  local color_diff format side_by_side suppress_common show_counts
-  zparseopts -D -E \
-    c=color_diff -color=color_diff \
-    y=side_by_side -side-by-side=side_by_side \
-    u=suppress_common -unique=suppress_common \
-    n=show_counts -count=show_counts
+	# Usage: dirdiff [options] dir1 dir2
+	local color_diff format side_by_side suppress_common show_counts
+	zparseopts -D -E \
+		c=color_diff -color=color_diff \
+		y=side_by_side -side-by-side=side_by_side \
+		u=suppress_common -unique=suppress_common \
+		n=show_counts -count=show_counts
 
-  if [[ $# -ne 2 ]]; then
-    echo "Usage: dirdiff [options] dir1 dir2"
-    echo "Options:"
-    echo "  -c, --color      Colored output"
-    echo "  -y, --side-by-side Parallel comparison"
-    echo "  -u, --unique     Only show unique files"
-    echo "  -n, --count      Show counts of unique files"
-    return 1
-  fi
+	if [[ $# -ne 2 ]]; then
+		echo "Usage: dirdiff [options] dir1 dir2"
+		echo "Options:"
+		echo "  -c, --color      Colored output"
+		echo "  -y, --side-by-side Parallel comparison"
+		echo "  -u, --unique     Only show unique files"
+		echo "  -n, --count      Show counts of unique files"
+		return 1
+	fi
 
-  local dir1=${1:a} dir2=${2:a}  # Convert to absolute paths
-  local ls_opts=(-1U)  # -1: one per line, -U: don't sort
+	local dir1=${1:a} dir2=${2:a} # Convert to absolute paths
+	local ls_opts=(-1U)           # -1: one per line, -U: don't sort
 
-  # Build diff command
-  local cmd=(diff)
-  [[ -n $side_by_side ]] && cmd+=(-y)
-  [[ -n $suppress_common ]] && cmd+=(--suppress-common-lines)
-  [[ -n $color_diff ]] && cmd=(colordiff "${cmd[@]}")
+	# Build diff command
+	local cmd=(diff)
+	[[ -n $side_by_side ]] && cmd+=(-y)
+	[[ -n $suppress_common ]] && cmd+=(--suppress-common-lines)
+	[[ -n $color_diff ]] && cmd=(colordiff "${cmd[@]}")
 
-  # Execute comparison
-  if [[ -n $show_counts ]]; then
-    echo "\n=== Unique files ==="
-    echo "Only in ${dir1:t}: $(comm -23 <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort) | wc -l)"
-    echo "Only in ${dir2:t}: $(comm -13 <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort) | wc -l)"
-  else
-    $cmd <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort)
-  fi
+	# Execute comparison
+	if [[ -n $show_counts ]]; then
+		echo "\n=== Unique files ==="
+		echo "Only in ${dir1:t}: $(comm -23 <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort) | wc -l)"
+		echo "Only in ${dir2:t}: $(comm -13 <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort) | wc -l)"
+	else
+		$cmd <(ls $ls_opts $dir1 | sort) <(ls $ls_opts $dir2 | sort)
+	fi
 }
-
-
 
 # ─────────────────────────────────────────────────────
 # ⚡ Git Aliases for Quick Commands
 # ─────────────────────────────────────────────────────
-
 
 git4() {
 	# activate git diff view
@@ -1031,9 +1002,8 @@ alias gpu="git pull origin \$(git branch --show-current)"
 alias gpr="git pull --rebase origin \$(git branch --show-current)"
 alias gpmn="git push origin main"
 
-
 alias gpf="git push -u myfork teleport_projectile_images"
-alias gpfu="git pull myfork teleport_projectile_images"          # just pull from that remote/branch
+alias gpfu="git pull myfork teleport_projectile_images" # just pull from that remote/branch
 
 alias gpam="git_push_all_msg"
 alias gpa="git_push_all"
@@ -1042,297 +1012,282 @@ alias gda="git_do_all"
 
 alias gas="git ls-files --others --modified --exclude-standard -z | xargs -0 du -h --apparent-size 2>/dev/null | sort -rh | bless"
 
-##### THE FOLLOWING TWO FUNCTION, git_clone_nonlocal, and git_filter_remove are for securely rewritting the commit history to 
-# remove a file from ever having been inside of it. Useful if you accidentally push your api key like a dumbass, or git add and commit 
-# a huge file by doing git add ., and now it's been 10 commits and 10 hours of works, and so unless you want to go back on all that work, 
+##### THE FOLLOWING TWO FUNCTION, git_clone_nonlocal, and git_filter_remove are for securely rewritting the commit history to
+# remove a file from ever having been inside of it. Useful if you accidentally push your api key like a dumbass, or git add and commit
+# a huge file by doing git add ., and now it's been 10 commits and 10 hours of works, and so unless you want to go back on all that work,
 # you have to filter repo the project and remove it from history, this is to have a safe way to do it. And since you can't push due to the big file
-#... then you also need to make a local clones, but it must not use hardlinks. 
-
-
+#... then you also need to make a local clones, but it must not use hardlinks.
 
 git_clone_nonlocal() {
-    # Ensure we are inside a Git repository
-    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
-        echo "Error: Not inside a Git repository."
-        return 1
-    fi
+	# Ensure we are inside a Git repository
+	if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+		echo "Error: Not inside a Git repository."
+		return 1
+	fi
 
-    # Get the absolute path of the Git repository root
-    repo_path=$(git rev-parse --show-toplevel)
-    repo_name=$(basename "$repo_path")
+	# Get the absolute path of the Git repository root
+	repo_path=$(git rev-parse --show-toplevel)
+	repo_name=$(basename "$repo_path")
 
-    # Get the absolute path of the directory above the Git repository
-    clone_parent=$(realpath "$(dirname "$repo_path")")  # Convert to absolute path
-    clone_path="${clone_parent}/${repo_name}_clone"
+	# Get the absolute path of the directory above the Git repository
+	clone_parent=$(realpath "$(dirname "$repo_path")") # Convert to absolute path
+	clone_path="${clone_parent}/${repo_name}_clone"
 
-    # Prevent overwriting if the directory already exists
-    if [[ -d "$clone_path" ]]; then
-        echo "Error: '$clone_path' already exists. Choose a different name or remove it."
-        return 1
-    fi
+	# Prevent overwriting if the directory already exists
+	if [[ -d "$clone_path" ]]; then
+		echo "Error: '$clone_path' already exists. Choose a different name or remove it."
+		return 1
+	fi
 
-    # Perform the non-local clone
-    echo "Cloning '$repo_name' to '$clone_path' (non-local clone)..."
-    git clone --no-local "$repo_path" "$clone_path"
+	# Perform the non-local clone
+	echo "Cloning '$repo_name' to '$clone_path' (non-local clone)..."
+	git clone --no-local "$repo_path" "$clone_path"
 
-    # Verify success
-    if [[ -d "$clone_path/.git" ]]; then
-        echo "Success: Non-local clone created at '$clone_path'."
-    else
-        echo "Error: Cloning failed."
-        return 1
-    fi
+	# Verify success
+	if [[ -d "$clone_path/.git" ]]; then
+		echo "Success: Non-local clone created at '$clone_path'."
+	else
+		echo "Error: Cloning failed."
+		return 1
+	fi
 }
-
 
 alias git_nonlocal_clone="git_clone_nonlocal"
 
 rename_files_for_filter_repo() {
-    local files=("$@")
-    local renamed_files=()
+	local files=("$@")
+	local renamed_files=()
 
-    echo ""
-    echo "🔄 Renaming files to prevent accidental removal..."
+	echo ""
+	echo "🔄 Renaming files to prevent accidental removal..."
 
-    for file in "${files[@]}"; do
-        if [[ -e "$file" ]]; then
-            local new_name="${file}_filter_repo_prevent"
+	for file in "${files[@]}"; do
+		if [[ -e "$file" ]]; then
+			local new_name="${file}_filter_repo_prevent"
 
-            if [[ -e "$new_name" ]]; then
-                echo "❌ Conflict detected: '$new_name' already exists. Aborting."
-                return 1
-            fi
+			if [[ -e "$new_name" ]]; then
+				echo "❌ Conflict detected: '$new_name' already exists. Aborting."
+				return 1
+			fi
 
-            mv "$file" "$new_name"
-            renamed_files+=("$new_name")
-            echo "✅ Renamed: '$file' → '$new_name'"
-        else
-            echo "⚠️ Warning: '$file' does not exist in the working directory. Proceeding..."
-        fi
-    done
+			mv "$file" "$new_name"
+			renamed_files+=("$new_name")
+			echo "✅ Renamed: '$file' → '$new_name'"
+		else
+			echo "⚠️ Warning: '$file' does not exist in the working directory. Proceeding..."
+		fi
+	done
 
-    # Store renamed files for later restoration
-    echo "${renamed_files[@]}" > .filter_repo_renamed_files
+	# Store renamed files for later restoration
+	echo "${renamed_files[@]}" >.filter_repo_renamed_files
 }
 
 restore_files_after_filter_repo() {
-    if [[ ! -f .filter_repo_renamed_files ]]; then
-        echo "❌ No renamed files found. Nothing to restore."
-        return 1
-    fi
+	if [[ ! -f .filter_repo_renamed_files ]]; then
+		echo "❌ No renamed files found. Nothing to restore."
+		return 1
+	fi
 
-    echo ""
-    echo "🔄 Restoring renamed files..."
+	echo ""
+	echo "🔄 Restoring renamed files..."
 
-    local renamed_files=($(cat .filter_repo_renamed_files))
+	local renamed_files=($(cat .filter_repo_renamed_files))
 
-    for renamed_file in "${renamed_files[@]}"; do
-        local original_name="${renamed_file%_filter_repo_prevent}" # Strip `_filter_repo_prevent`
+	for renamed_file in "${renamed_files[@]}"; do
+		local original_name="${renamed_file%_filter_repo_prevent}" # Strip `_filter_repo_prevent`
 
-        if [[ -e "$renamed_file" ]]; then
-            mv "$renamed_file" "$original_name"
-            echo "✅ Restored: '$renamed_file' → '$original_name'"
-        else
-            echo "⚠️ Warning: '$renamed_file' not found. Skipping..."
-        fi
-    done
+		if [[ -e "$renamed_file" ]]; then
+			mv "$renamed_file" "$original_name"
+			echo "✅ Restored: '$renamed_file' → '$original_name'"
+		else
+			echo "⚠️ Warning: '$renamed_file' not found. Skipping..."
+		fi
+	done
 
-    rm -f .filter_repo_renamed_files  # Cleanup
+	rm -f .filter_repo_renamed_files # Cleanup
 }
 
-
-
-
-
 git_filter_remove_dryrun() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: git_filter_remove_dryrun [--force] <file-or-directory> [<file2> ...]"
-        return 1
-    fi
+	if [[ $# -eq 0 ]]; then
+		echo "Usage: git_filter_remove_dryrun [--force] <file-or-directory> [<file2> ...]"
+		return 1
+	fi
 
-    local files_to_check=()
-    local force_mode=false
+	local files_to_check=()
+	local force_mode=false
 
-    # Parse arguments
-    for arg in "$@"; do
-        if [[ "$arg" == "--force" ]]; then
-            force_mode=true
-        else
-            files_to_check+=("$arg")
-        fi
-    done
+	# Parse arguments
+	for arg in "$@"; do
+		if [[ "$arg" == "--force" ]]; then
+			force_mode=true
+		else
+			files_to_check+=("$arg")
+		fi
+	done
 
-    echo ""
-    echo "🔍 Dry Run: Checking which files exist in history..."
-    echo ""
+	echo ""
+	echo "🔍 Dry Run: Checking which files exist in history..."
+	echo ""
 
-    if [[ "$force_mode" == false ]]; then
-        local verified_files=()
-        for file in "${files_to_check[@]}"; do
-            if git log --name-only --pretty=format: | sort -u | grep -qx "$file"; then
-                verified_files+=("$file")
-                echo "✅ File Found: $file"
-                echo "📜 Affected Commits:"
-                git log --oneline --name-only --pretty=format:"%h %s" | grep -B 1 "$file" | awk '!seen[$0]++'
-                echo "--------------------------------------"
-            else
-                echo "❌ Warning: '$file' does not exist in Git history. Exiting to be safe."
-                return 1
-            fi
-        done
+	if [[ "$force_mode" == false ]]; then
+		local verified_files=()
+		for file in "${files_to_check[@]}"; do
+			if git log --name-only --pretty=format: | sort -u | grep -qx "$file"; then
+				verified_files+=("$file")
+				echo "✅ File Found: $file"
+				echo "📜 Affected Commits:"
+				git log --oneline --name-only --pretty=format:"%h %s" | grep -B 1 "$file" | awk '!seen[$0]++'
+				echo "--------------------------------------"
+			else
+				echo "❌ Warning: '$file' does not exist in Git history. Exiting to be safe."
+				return 1
+			fi
+		done
 
-        # If no files exist, exit safely
-        if [[ ${#verified_files[@]} -eq 0 ]]; then
-            echo "❌ No valid files found in Git history. Aborting."
-            return 1
-        fi
-    fi
+		# If no files exist, exit safely
+		if [[ ${#verified_files[@]} -eq 0 ]]; then
+			echo "❌ No valid files found in Git history. Aborting."
+			return 1
+		fi
+	fi
 
-    echo ""
-    echo "🚀 Running `git filter-repo --dry-run` simulation..."
-    echo ""
+	echo ""
+	echo "🚀 Running $(git filter-repo --dry-run) simulation..."
+	echo ""
 
 	# Step 1️⃣: Rename files to avoid accidental removal
-    rename_files_for_filter_repo "${files_to_remove[@]}" || {
-        echo "❌ File renaming failed. Aborting."
-        return 1
-    }
+	rename_files_for_filter_repo "${files_to_remove[@]}" || {
+		echo "❌ File renaming failed. Aborting."
+		return 1
+	}
 
+	if [[ "$force_mode" == true ]]; then
+		git filter-repo --invert-paths --dry-run --force --path "${files_to_check[@]}"
+	else
+		git filter-repo --invert-paths --dry-run --path "${files_to_check[@]}"
+	fi
+	filter_repo_exit_code=$?
 
-    if [[ "$force_mode" == true ]]; then
-        git filter-repo --invert-paths --dry-run --force --path "${files_to_check[@]}"
-    else
-        git filter-repo --invert-paths --dry-run --path "${files_to_check[@]}"
-    fi
-    filter_repo_exit_code=$?
+	if [[ $filter_repo_exit_code -ne 0 ]]; then
+		printf "\n❌ $(git filter-repo --dry-run) failed. Aborting.\n"
+		printf "💡 If the file does not exist in history, there's nothing to remove.\n"
+		printf "💡 This usually happens if you're not in a fresh clone.\n"
+		printf "🔄 Try running: git_clone_nonlocal\n\n"
+		return 1
+	fi
 
-    if [[ $filter_repo_exit_code -ne 0 ]]; then
-        printf "\n❌ `git filter-repo --dry-run` failed. Aborting.\n"
-        printf "💡 If the file does not exist in history, there's nothing to remove.\n"
-        printf "💡 This usually happens if you're not in a fresh clone.\n"
-        printf "🔄 Try running: git_clone_nonlocal\n\n"
-        return 1
-    fi
+	restore_files_after_filter_repo
 
-    restore_files_after_filter_repo
-
-    echo ""
-    echo "✅ Dry run complete. No changes were made."
+	echo ""
+	echo "✅ Dry run complete. No changes were made."
 }
 
 git_filter_remove() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: git_filter_remove [--force] <file-or-directory> [<file2> ...]"
-        return 1
-    fi
+	if [[ $# -eq 0 ]]; then
+		echo "Usage: git_filter_remove [--force] <file-or-directory> [<file2> ...]"
+		return 1
+	fi
 
-    printf "\n Are you in a non-local clone? Use git_clone_nonlocal first, then filter remove there, and push from there.\n\n"
+	printf "\n Are you in a non-local clone? Use git_clone_nonlocal first, then filter remove there, and push from there.\n\n"
 
-    local files_to_remove=()
-    local force_mode=false
+	local files_to_remove=()
+	local force_mode=false
 
-    # Parse arguments
-    for arg in "$@"; do
-        if [[ "$arg" == "--force" ]]; then
-            force_mode=true
-        else
-            files_to_remove+=("$arg")
-        fi
-    done
+	# Parse arguments
+	for arg in "$@"; do
+		if [[ "$arg" == "--force" ]]; then
+			force_mode=true
+		else
+			files_to_remove+=("$arg")
+		fi
+	done
 
-    if [[ "$force_mode" == false ]]; then
-        # Check if files exist in Git history before attempting removal
-        for file in "${files_to_remove[@]}"; do
-            if git log --name-only --pretty=format: | sort -u | grep -qx "$file"; then
-                echo "✅ File Found: $file"
-            else
-                echo "❌ Warning: '$file' does not exist in Git history. Exiting to be safe."
-                return 1
-            fi
-        done
-    fi
+	if [[ "$force_mode" == false ]]; then
+		# Check if files exist in Git history before attempting removal
+		for file in "${files_to_remove[@]}"; do
+			if git log --name-only --pretty=format: | sort -u | grep -qx "$file"; then
+				echo "✅ File Found: $file"
+			else
+				echo "❌ Warning: '$file' does not exist in Git history. Exiting to be safe."
+				return 1
+			fi
+		done
+	fi
 
-    echo "🚀 The following files will be removed from history:"
-    echo "${files_to_remove[*]}"
-    echo ""
-    echo "⚠️ This will PERMANENTLY rewrite commit history."
-    read "confirm?Are you sure? This will proceed to a dry-run (yes/no): "
+	echo "🚀 The following files will be removed from history:"
+	echo "${files_to_remove[*]}"
+	echo ""
+	echo "⚠️ This will PERMANENTLY rewrite commit history."
+	read "confirm?Are you sure? This will proceed to a dry-run (yes/no): "
 
-    if [[ "$confirm" != "yes" ]]; then
-        echo "❌ Manually Aborted."
-        return 1
-    fi
+	if [[ "$confirm" != "yes" ]]; then
+		echo "❌ Manually Aborted."
+		return 1
+	fi
 
+	# Call the dry-run function first
+	if [[ "$force_mode" == true ]]; then
+		git_filter_remove_dryrun --force "${files_to_remove[@]}" || {
+			printf "\n❌ Aborting due to dry-run failure.\n"
+			return 1
+		}
+	else
+		git_filter_remove_dryrun "${files_to_remove[@]}" || {
+			printf "\n❌ Aborting due to dry-run failure.\n"
+			return 1
+		}
+	fi
 
-    # Call the dry-run function first
-    if [[ "$force_mode" == true ]]; then
-        git_filter_remove_dryrun --force "${files_to_remove[@]}" || {
-            printf "\n❌ Aborting due to dry-run failure.\n"
-            return 1
-        }
-    else
-        git_filter_remove_dryrun "${files_to_remove[@]}" || {
-            printf "\n❌ Aborting due to dry-run failure.\n"
-            return 1
-        }
-    fi
+	echo ""
+	echo ""
+	echo ""
+	echo "🟡 Warning: This is the last check. If you say yes, it will do permanent removal."
+	read "confirm_dry_run?Does this look like the output of a correct dry-run? (yes/no): "
+	if [[ "$confirm_dry_run" != "yes" ]]; then
+		echo "❌ Manually Aborted."
+		return 1
+	fi
 
-    echo ""
-    echo ""
-    echo ""
-    echo "🟡 Warning: This is the last check. If you say yes, it will do permanent removal."
-    read "confirm_dry_run?Does this look like the output of a correct dry-run? (yes/no): "
-    if [[ "$confirm_dry_run" != "yes" ]]; then
-        echo "❌ Manually Aborted."
-        return 1
-    fi
-
-    echo ""
-    echo ""
-    echo ""
+	echo ""
+	echo ""
+	echo ""
 
 	# Step 1️⃣: Rename files to avoid accidental removal
-    rename_files_for_filter_repo "${files_to_remove[@]}" || {
-        echo "❌ File renaming failed. Aborting."
-        return 1
-    }
+	rename_files_for_filter_repo "${files_to_remove[@]}" || {
+		echo "❌ File renaming failed. Aborting."
+		return 1
+	}
 
-    # Remove files from history using git filter-repo
-    if [[ "$force_mode" == true ]]; then
-        git filter-repo --invert-paths --force --path "${files_to_remove[@]}"
-    else
-        git filter-repo --invert-paths --path "${files_to_remove[@]}"
-    fi
+	# Remove files from history using git filter-repo
+	if [[ "$force_mode" == true ]]; then
+		git filter-repo --invert-paths --force --path "${files_to_remove[@]}"
+	else
+		git filter-repo --invert-paths --path "${files_to_remove[@]}"
+	fi
 
-    restore_files_after_filter_repo
+	restore_files_after_filter_repo
 
-    echo "✅ Successfully removed files from Git history."
+	echo "✅ Successfully removed files from Git history."
 }
 
-
 git_pull_branch() {
-    local local_branch="$1"
-    local remote_branch="${2:-$local_branch}"
+	local local_branch="$1"
+	local remote_branch="${2:-$local_branch}"
 
-    if [[ -z "$local_branch" ]]; then
-        echo "Usage: git_pull_branch <local-branch> [remote-branch]"
-        return 1
-    fi
+	if [[ -z "$local_branch" ]]; then
+		echo "Usage: git_pull_branch <local-branch> [remote-branch]"
+		return 1
+	fi
 
 	# ====================================
-    # Fetch the latest from origin
-    git fetch origin "$remote_branch" || return 1
+	# Fetch the latest from origin
+	git fetch origin "$remote_branch" || return 1
 
-    # Create and checkout the local branch tracking the remote
-    git checkout -b "$local_branch" "origin/$remote_branch"
+	# Create and checkout the local branch tracking the remote
+	git checkout -b "$local_branch" "origin/$remote_branch"
 }
 
 alias gpb="git_pull_branch"
-
-
-
-
-
 
 # ─────────────────────────────────────────────────────
 # 🌎 🔧 1️⃣0️⃣ System Paths & Java + JUnit Setup
@@ -1341,16 +1296,12 @@ alias gpb="git_pull_branch"
 # Custom home binaries, cargo binaries and go binaries
 
 # User-level binaries
-for dir in "$HOME/bin" "$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/go/bin" "$HOME/Music" ; do
-  [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH="$dir:$PATH"
+for dir in "$HOME/bin" "$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/go/bin" "$HOME/Music"; do
+	[[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH="$dir:$PATH"
 done
 export PATH
 
-
-
 alias -g see_path='echo $PATH | tr : "\n"'
-
-
 
 JAVA_USR_PATH="$HOME/.local/java"
 JAVA_SYS_PATH="/usr/lib/jvm"
@@ -1360,17 +1311,13 @@ export JAVA_HOME="$JAVA_PATH/java-21-openjdk"
 export PATH_TO_FX="$JAVA_PATH/javafx-sdk-21.0.6/lib"
 export JDTLS_HOME="$HOME/.local/share/eclipse.jdt.ls/bin"
 
-
 # Java-related
 [[ -n "$JAVA_PATH" && ":$PATH:" != *":$JAVA_PATH:"* ]] && PATH="$JAVA_PATH:$PATH"
 [[ -n "$JAVA_HOME" && -d "$JAVA_HOME/bin" && ":$PATH:" != *":$JAVA_HOME/bin:"* ]] && PATH="$JAVA_HOME/bin:$PATH"
 export PATH
 
-
-# don't use it 
+# don't use it
 # export PATH="$JDTLS_HOME:$PATH"
-
-
 
 export JUNIT5_PATH="$JAVA_USR_PATH/junit5"
 export JUNIT4_PATH="$JAVA_USR_PATH/junit4"
@@ -1386,18 +1333,15 @@ $JUNIT4_PATH/junit-4.13.2.jar"
 export JAVAC_TOOL_OPTIONS="--module-path $PATH_TO_FX"
 # --add-modules=javafx.base,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.swing,javafx.web"
 
-# With the export classpath, you can now do 
+# With the export classpath, you can now do
 # javac MyProgram.java -- works without needed extra option
 # java MyProgram.java -- works without needed extra options
-
 
 alias jetuml="JetUML"
 alias jetUML="JetUML"
 
-
 export UNCRUSTIFY_CONFIG="$HOME/uncrustify_default.cfg"
 # For C formatting
-
 
 # Define paths
 AutoMakeJava_Path="${HOME}/Documents/University (Real)/Semester 10/Comp 303/AutomakeJava"
@@ -1408,7 +1352,6 @@ export PATH
 # Path to Python executable inside the virtual environment
 pythonFor_AutoMakeJava="$PYTHON_VENV_DIR/javaAM/bin/python"
 
-
 # Unset alias if it exists (to avoid conflicts)
 unalias automakeJava 2>/dev/null
 
@@ -1417,36 +1360,80 @@ automakeJava() {
 	"$pythonFor_AutoMakeJava" "${AutoMakeJava_Path}/src/automake.py" "$@"
 }
 
-
 # Alias to call the function
 alias java_run="automakeJava"
 export AM="$AutoMakeJava_Path/src/automake.py"
 
+function arduino-ide-cli() {
+	local file="$1"
+
+	if [[ -z "$file" ]]; then
+		echo "Usage: arduino_open <file>"
+		return 1
+	fi
+
+	nohup arduino-ide "$file" >/dev/null 2>&1 &
+	disown
+}
 
 #
+
+# ─────────────────────────────────────────────────────
+# 🌿 🔌 1️⃣1️⃣ Arduino CLI (ESP32 Development)
+# ─────────────────────────────────────────────────────
+
+source "$HOME/.config/zsh/arduino/espflash.sh"
+
+read_esp_partition() {
+	local partition="${1:-.pio/build/esp32s3/partitions.bin}"
+
+	if [ -z "${IDF_PATH:-}" ]; then
+		export IDF_PATH="/home/francois/Documents/GitClones/esp-idf"
+	fi
+
+	"$IDF_PATH/components/partition_table/gen_esp32part.py" "$partition"
+}
+
+source_esp() {
+	source ~/Documents/GitClones/esp-idf/export.sh
+}
+
+# 📟 Optional: quick serial monitor helper
+espmon() {
+	local port="/dev/ttyACM0"
+	local baud="115200"
+
+	echo "📡 Opening serial monitor on $port @ $baud"
+	arduino-cli monitor -p "$port" -c "baudrate=$baud"
+}
+
+# 🔍 Optional: list detected boards (ESP32 / Arduino / USB devices)
+esplist() {
+	echo "🔎 Detected Arduino boards:"
+	arduino-cli board list
+}
 
 # ─────────────────────────────────────────────────────
 # 🌎 🔧 1️⃣0️⃣ System Paths (Perl Setup)
 # ─────────────────────────────────────────────────────
 
-
 # Function to prepend to a colon-separated env var if not already present
 prepend_path() {
-  local varname=$1
-  local dir=$2
-  # Get current value of variable indirectly
-  local val
-  val=$(eval echo "\$$varname")
-  case ":$val:" in
-    *":$dir:"*) ;;  # already present, do nothing
-    *)
-      if [ -z "$val" ]; then
-        eval "$varname=\"$dir\""
-      else
-        eval "$varname=\"$dir:$val\""
-      fi
-      ;;
-  esac
+	local varname=$1
+	local dir=$2
+	# Get current value of variable indirectly
+	local val
+	val=$(eval echo "\$$varname")
+	case ":$val:" in
+	*":$dir:"*) ;; # already present, do nothing
+	*)
+		if [ -z "$val" ]; then
+			eval "$varname=\"$dir\""
+		else
+			eval "$varname=\"$dir:$val\""
+		fi
+		;;
+	esac
 }
 
 # Prepend directories safely
@@ -1462,18 +1449,15 @@ PERL_MM_OPT="INSTALL_BASE=/home/francois/perl5"
 
 export PERL_MB_OPT PERL_MM_OPT
 
-
 # PATH="/home/francois/perl5/bin${PATH:+:${PATH}}"; export PATH;
 # PERL5LIB="/home/francois/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
 # PERL_LOCAL_LIB_ROOT="/home/francois/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
 # PERL_MB_OPT="--install_base \"/home/francois/perl5\""; export PERL_MB_OPT;
 # PERL_MM_OPT="INSTALL_BASE=/home/francois/perl5"; export PERL_MM_OPT;
 
-
 # ─────────────────────────────────────────────────────
 # 🔧 1️⃣1️⃣ General / Miscellaneous Shortcuts
 # ─────────────────────────────────────────────────────
-
 
 unalias r 2>/dev/null # it's for redoing. But fuck that, who needs redoing commands, just up arrow and enter
 # Reload Zsh configuration
@@ -1492,7 +1476,6 @@ alias jat="jq . |  bat --language json"
 # Get current public IP
 alias myip="curl -s https://ipinfo.io/ip"
 
-
 # For cmd | invert, to reverse the order
 alias invert="tac"
 alias reverse="tac"
@@ -1503,25 +1486,22 @@ alias yp="yay -S"
 
 # Find the git project root
 function find_git_root() {
-    local dir=${1:-$PWD}  # start from given dir or current directory
-    while [[ "$dir" != "/" ]]; do
-        if [[ -d "$dir/.git" ]]; then
-            echo "$dir"
-            return 0
-        fi
-        dir=$(dirname "$dir")
-    done
-    echo "No git repository found" >&2
-    return 1
+	local dir=${1:-$PWD} # start from given dir or current directory
+	while [[ "$dir" != "/" ]]; do
+		if [[ -d "$dir/.git" ]]; then
+			echo "$dir"
+			return 0
+		fi
+		dir=$(dirname "$dir")
+	done
+	echo "No git repository found" >&2
+	return 1
 }
-
 
 alias fpr="find_git_root"
 
-
 # Safe file removal with confirmation
 # alias rm="rm -i"
-
 
 # System information
 alias sysinfo="neofetch"
@@ -1532,25 +1512,23 @@ alias disk="df -h"
 # See partition with names
 alias lsblk1="lsblk -o +PARTLABEL"
 
-
 # List all open ports
 alias ports="ss -tuln"
 
 checkport() {
-    if [[ -z "$1" ]]; then
-        echo "Usage: checkport <port>"
-        return 1
-    fi
+	if [[ -z "$1" ]]; then
+		echo "Usage: checkport <port>"
+		return 1
+	fi
 
-    local port="$1"
-    
-    if ss -tulnp | grep -w ":$port" >/dev/null 2>&1; then
-        ss -tulnp | grep -w ":$port"
-    else
-        echo "❌ No socket found on port $port"
-    fi
+	local port="$1"
+
+	if ss -tulnp | grep -w ":$port" >/dev/null 2>&1; then
+		ss -tulnp | grep -w ":$port"
+	else
+		echo "❌ No socket found on port $port"
+	fi
 }
-
 
 # Show processes in a tree format
 alias psg="ps auxf"
@@ -1562,14 +1540,12 @@ alias pwv="pwp"
 alias prevc="history --max=1 | c"
 
 copy_history() {
-    local n=${1:-10}  # Default to 10 if no argument is given
-    history | tail -n "$n" | awk '{$1=""; print substr($0,2)}' | c  
+	local n=${1:-10} # Default to 10 if no argument is given
+	history | tail -n "$n" | awk '{$1=""; print substr($0,2)}' | c
 }
-
 
 # Change directory to last visited
 alias back="cd -"
-
 
 alias et="exit"
 alias lg="lazygit"
@@ -1578,224 +1554,209 @@ alias timeshift-wayland="sudo -E timeshift-gtk"
 
 alias find_pacman_cycle="$HOME/.config/zsh/pacman_dep_tree/find_cycles.py"
 
-
 c_debug_system_wide() {
-    ulimit -c unlimited # This is all I need for the shell
-    echo "core.%e.%p" | sudo tee /proc/sys/kernel/core_pattern
-	# These change, (same for c_debug_stop) are only runtime changes. 
+	ulimit -c unlimited # This is all I need for the shell
+	echo "core.%e.%p" | sudo tee /proc/sys/kernel/core_pattern
+	# These change, (same for c_debug_stop) are only runtime changes.
 	# it won't survive a reboot
 }
 # When a C program crash, it will dump the core file in the current dir, so you can use it for gdb
 
 c_debug_system_wide_stop() {
-    # Reset the core dump file pattern to the default value
-    # echo "core" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
-	# ^ Even if this is the wrong default value, it won't survive 
+	# Reset the core dump file pattern to the default value
+	# echo "core" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
+	# ^ Even if this is the wrong default value, it won't survive
 	# a reboot. so its fine. Though v is the correct value
 	echo '|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h %d %F' | sudo tee /proc/sys/kernel/core_pattern
 
+	# Set the core dump size limit back to 0 (disable core dumps)
+	ulimit -c 0
 
-    
-    # Set the core dump size limit back to 0 (disable core dumps)
-    ulimit -c 0
-    
-    echo "Core dump debugging has been disabled."
+	echo "Core dump debugging has been disabled."
 }
 
 # Enable core dumps for this shell and write them in the current directory
 c_debug() {
-    ulimit -c unlimited
-    export CORE_PATTERN="./core.%e.%p"
-    echo "Core dumps enabled for this shell. Cores will be written in: $PWD"
+	ulimit -c unlimited
+	export CORE_PATTERN="./core.%e.%p"
+	echo "Core dumps enabled for this shell. Cores will be written in: $PWD"
 
-	# You can also do this: 
+	# You can also do this:
 	# CORE_PATTERN=./core ./a.out
 }
 
 # Run a program with a temporary core pattern
 c_run_with_core() {
-    # Usage: c_run_with_core ./my_program args...
-    CORE_PATTERN="./core.%e.%p" "$@"
-	# If you don't care about overwriting old cores. Just do: 
+	# Usage: c_run_with_core ./my_program args...
+	CORE_PATTERN="./core.%e.%p" "$@"
+	# If you don't care about overwriting old cores. Just do:
 	# CORE_PATTERN="./core" "$@"
 }
 
-
 # Disable core dumps for this shell
 c_debug_stop() {
-    ulimit -c 0
-    unset CORE_PATTERN
-    echo "Core dumps disabled for this shell."
+	ulimit -c 0
+	unset CORE_PATTERN
+	echo "Core dumps disabled for this shell."
 }
-
 
 debug_forward() {
-    local exe_name="$1"
-    shift  # remove exe_name from arguments
+	local exe_name="$1"
+	shift # remove exe_name from arguments
 
-    if [[ -z "$exe_name" ]]; then
-        echo "Usage: debug_forward <exe_name> [args...]"
-        return 1
-    fi
+	if [[ -z "$exe_name" ]]; then
+		echo "Usage: debug_forward <exe_name> [args...]"
+		return 1
+	fi
 
-    if [[ $# -gt 0 ]]; then
-        rr record "$exe_name" -- "$@"
-    else
-        rr record "$exe_name"
-    fi
+	if [[ $# -gt 0 ]]; then
+		rr record "$exe_name" -- "$@"
+	else
+		rr record "$exe_name"
+	fi
 }
 
-
-
 debug_backward() {
-    local exe_name="$1"
-    local rr_dir="$HOME/.local/share/rr"
-    local traces
-    local selected_trace
+	local exe_name="$1"
+	local rr_dir="$HOME/.local/share/rr"
+	local traces
+	local selected_trace
 
-    if [[ -z "$exe_name" ]]; then
-        echo "Usage: debug_backward <exe_name>"
-        return 1
-    fi
+	if [[ -z "$exe_name" ]]; then
+		echo "Usage: debug_backward <exe_name>"
+		return 1
+	fi
 
-    # List traces for this executable
-    traces=($(ls -1 "$rr_dir" | grep "^${exe_name}-"))
-    if [[ ${#traces[@]} -eq 0 ]]; then
-        echo "No traces found for $exe_name"
-        return 1
-    fi
+	# List traces for this executable
+	traces=($(ls -1 "$rr_dir" | grep "^${exe_name}-"))
+	if [[ ${#traces[@]} -eq 0 ]]; then
+		echo "No traces found for $exe_name"
+		return 1
+	fi
 
-    # Pick a trace with fzf
-    selected_trace=$(printf "%s\n" "${traces[@]}" | fzf --prompt="Select rr trace: ")
-    if [[ -z "$selected_trace" ]]; then
-        echo "No trace selected"
-        return 1
-    fi
+	# Pick a trace with fzf
+	selected_trace=$(printf "%s\n" "${traces[@]}" | fzf --prompt="Select rr trace: ")
+	if [[ -z "$selected_trace" ]]; then
+		echo "No trace selected"
+		return 1
+	fi
 
-    echo "[+] Replaying trace: $selected_trace"
-    rr replay "$rr_dir/$selected_trace"
+	echo "[+] Replaying trace: $selected_trace"
+	rr replay "$rr_dir/$selected_trace"
 }
 
 alias dgf="debug_forward"
 alias dgb="debug_backward"
 
-
-
 real_mounts() {
-  {
-    echo -e "Filesystem Type Size Used Avail Use% Mounted_on"
-    df -hT -x tmpfs -x devtmpfs -x squashfs | awk '$1 ~ /^\/dev\//'
-  } | column -t
+	{
+		echo -e "Filesystem Type Size Used Avail Use% Mounted_on"
+		df -hT -x tmpfs -x devtmpfs -x squashfs | awk '$1 ~ /^\/dev\//'
+	} | column -t
 }
 
-
-
-
 show_files() {
-  local dir="${1:-.}"
-  local IGNORED_DIRS=(".git" ".nvim-session" "node_modules" "__pycache__")
+	local dir="${1:-.}"
+	local IGNORED_DIRS=(".git" ".nvim-session" "node_modules" "__pycache__")
 
-  # Build find exclude arguments
-  local FIND_IGNORE_ARGS=()
-  for ignore in "${IGNORED_DIRS[@]}"; do
-    FIND_IGNORE_ARGS+=( -path "$dir/$ignore" -prune -o )
-  done
+	# Build find exclude arguments
+	local FIND_IGNORE_ARGS=()
+	for ignore in "${IGNORED_DIRS[@]}"; do
+		FIND_IGNORE_ARGS+=(-path "$dir/$ignore" -prune -o)
+	done
 
-  # Find and process files
-  find "$dir" "${FIND_IGNORE_ARGS[@]}" -type f -print 2>/dev/null | while read -r file; do
-    # Check if it's a text file
-    if file --mime-type "$file" | grep -q 'text/'; then
-      echo -e "\n==> $file <=="
-      cat "$file"
-    else
-      echo -e "\n==> $file (Not a text file, skipped) <=="
-    fi
-done
+	# Find and process files
+	find "$dir" "${FIND_IGNORE_ARGS[@]}" -type f -print 2>/dev/null | while read -r file; do
+		# Check if it's a text file
+		if file --mime-type "$file" | grep -q 'text/'; then
+			echo -e "\n==> $file <=="
+			cat "$file"
+		else
+			echo -e "\n==> $file (Not a text file, skipped) <=="
+		fi
+	done
 }
 
 function kill_using_path() {
-  local target="$1"
-  if [[ -z "$target" ]]; then
-    echo "Usage: kill_using_path /path/to/mountpoint"
-    return 1
-  fi
+	local target="$1"
+	if [[ -z "$target" ]]; then
+		echo "Usage: kill_using_path /path/to/mountpoint"
+		return 1
+	fi
 
-  echo "🔍 Checking processes using: $target"
-  local output
-  output=$(fuser -m "$target" 2>/dev/null)
+	echo "🔍 Checking processes using: $target"
+	local output
+	output=$(fuser -m "$target" 2>/dev/null)
 
-  if [[ -z "$output" ]]; then
-    echo "✅ No processes are using $target"
-    return 0
-  fi
+	if [[ -z "$output" ]]; then
+		echo "✅ No processes are using $target"
+		return 0
+	fi
 
-  echo
-  echo "🔗 Access Mode Legend:"
-  echo "  c - current directory"
-  echo "  e - executable being run"
-  echo "  f - open file"
-  echo "  F - open file for writing"
-  echo "  r - root directory"
-  echo "  m - memory-mapped file or library"
+	echo
+	echo "🔗 Access Mode Legend:"
+	echo "  c - current directory"
+	echo "  e - executable being run"
+	echo "  f - open file"
+	echo "  F - open file for writing"
+	echo "  r - root directory"
+	echo "  m - memory-mapped file or library"
 
-  echo
-  echo "🧠 Found PIDs: $output"
+	echo
+	echo "🧠 Found PIDs: $output"
 
-  # this is a correct zsh line. But not a correct bash one
-  for pid_flag in ${(z)output}; do
-    local pid="${pid_flag%%[a-zA-Z]}"
-    local flag="${pid_flag:${#pid}}"
+	# this is a correct zsh line. But not a correct bash one
+	for pid_flag in ${(z)output}; do
+		local pid="${pid_flag%%[a-zA-Z]}"
+		local flag="${pid_flag:${#pid}}"
 
-    echo
-    echo "🔎 Process $pid is using it as: $flag"
-    ps -p "$pid" -o pid,ppid,user,%cpu,%mem,etime,cmd
+		echo
+		echo "🔎 Process $pid is using it as: $flag"
+		ps -p "$pid" -o pid,ppid,user,%cpu,%mem,etime,cmd
 
-    echo
-    read "?❓ Kill process $pid normally? [y/N] " reply
-    if [[ "$reply" =~ ^[Yy]$ ]]; then
-      kill "$pid" && echo "✅ Sent SIGTERM to $pid" || {
-        echo "❌ Normal kill failed."
-        read "?💥 Force kill (SIGKILL -9)? [y/N] " reply2
-        if [[ "$reply2" =~ ^[Yy]$ ]]; then
-          kill -9 "$pid" && echo "✅ Sent SIGKILL to $pid" || echo "❌ Force kill failed."
-        fi
-      }
-    fi
-  done
+		echo
+		read "?❓ Kill process $pid normally? [y/N] " reply
+		if [[ "$reply" =~ ^[Yy]$ ]]; then
+			kill "$pid" && echo "✅ Sent SIGTERM to $pid" || {
+				echo "❌ Normal kill failed."
+				read "?💥 Force kill (SIGKILL -9)? [y/N] " reply2
+				if [[ "$reply2" =~ ^[Yy]$ ]]; then
+					kill -9 "$pid" && echo "✅ Sent SIGKILL to $pid" || echo "❌ Force kill failed."
+				fi
+			}
+		fi
+	done
 }
-
-
 
 # xprop equivalent. Click on a window to know the running application
 function xprop_equiv() {
 	wlprop
 	hyprctl activewindow -j | jq
 	wayland-info
-	# pick one of the three. 
+	# pick one of the three.
 }
-
 
 # Change wallpaper on Hyprland via Hyprpaper
 function set_wallpaper() {
 	local file="$1"
-    local monitor="$2"
+	local monitor="$2"
 
-    if [[ -z "$file" || -z "$monitor" ]]; then
-        echo "Usage: set_wallpaper <file_path> <monitor_id>"
-        return 1
-    fi
+	if [[ -z "$file" || -z "$monitor" ]]; then
+		echo "Usage: set_wallpaper <file_path> <monitor_id>"
+		return 1
+	fi
 
-    # Resolve full absolute path
-    local fullpath
-    fullpath="$(realpath "$file")"
+	# Resolve full absolute path
+	local fullpath
+	fullpath="$(realpath "$file")"
 
-    if [[ ! -f "$fullpath" ]]; then
-        echo "Error: file '$fullpath' does not exist."
-        return 1
-    fi
+	if [[ ! -f "$fullpath" ]]; then
+		echo "Error: file '$fullpath' does not exist."
+		return 1
+	fi
 
-    # Set wallpaper for the monitor
-    hyprctl hyprpaper wallpaper "$monitor,$fullpath"
+	# Set wallpaper for the monitor
+	hyprctl hyprpaper wallpaper "$monitor,$fullpath"
 }
 
 function filepath_length() {
@@ -1822,85 +1783,70 @@ function filepath_length() {
 	echo "Directory length: $dir_len"
 }
 
-
-
-
-
 # ─────────────────────────────────────────────────────
 # 🛠️ Zsh Functions for Background Execution with Logging
 # ─────────────────────────────────────────────────────
 
 # Function to execute a command in the background without logging
 execp() {
-    nohup "$@" > /dev/null 2>&1 &
+	nohup "$@" >/dev/null 2>&1 &
 }
 
 # Function to execute a command in the background with logging
 execpl_nohup() {
-    mkdir -p "$HOME/.config/execp_logs"
-    log_file="$HOME/.config/execp_logs/${1%% *}.log"
+	mkdir -p "$HOME/.config/execp_logs"
+	log_file="$HOME/.config/execp_logs/${1%% *}.log"
 
-    printf "\n\n--------------------(%s)--------------------\n\n" "$(date)" >> "$log_file"
+	printf "\n\n--------------------(%s)--------------------\n\n" "$(date)" >>"$log_file"
 
-    nohup "$@" >> "$log_file" 2>&1 &
+	nohup "$@" >>"$log_file" 2>&1 &
 }
 
 # Function to execute a command in the background using systemd
 execpl_systemd() {
-    mkdir -p "$HOME/.config/execp_logs"
-    log_file="$HOME/.config/execp_logs/${1%% *}.log"
+	mkdir -p "$HOME/.config/execp_logs"
+	log_file="$HOME/.config/execp_logs/${1%% *}.log"
 
-    printf "\n\n--------------------(%s)--------------------\n\n" "$(date)" >> "$log_file"
+	printf "\n\n--------------------(%s)--------------------\n\n" "$(date)" >>"$log_file"
 
-    systemd-run --user --unit="${1%% *}" --output=append:"$log_file" "$@"
+	systemd-run --user --unit="${1%% *}" --output=append:"$log_file" "$@"
 }
 
 # Alias to use systemd-based execution by default
 alias execpl='execpl_nohup'
 
-
 alias eth="execp thunar ."
-
-
-
-
 
 alias change_prompt_look="p10k configure"
 alias change_look="p10k configure"
 
-
-
-
-
-
-
 replace_word() {
-    local word_to_replace="$1"
-    local replace_to="$2"
-    local exception1="${3:-}"
-    local exception2="${4:-}"
+	local word_to_replace="$1"
+	local replace_to="$2"
+	local exception1="${3:-}"
+	local exception2="${4:-}"
 
-    if [[ -z "$word_to_replace" || -z "$replace_to" ]]; then
-        echo "Usage: replace_word <word_to_replace> <replace_to> [exception1] [exception2]"
-        return 1
-    fi
+	if [[ -z "$word_to_replace" || -z "$replace_to" ]]; then
+		echo "Usage: replace_word <word_to_replace> <replace_to> [exception1] [exception2]"
+		return 1
+	fi
 
-    # Print info
-    echo "Replacing: '$word_to_replace' → '$replace_to'"
-    [[ -n "$exception1" ]] && echo "Excluding: '$exception1'"
-    [[ -n "$exception2" ]] && echo "Excluding: '$exception2'"
+	# Print info
+	echo "Replacing: '$word_to_replace' → '$replace_to'"
+	[[ -n "$exception1" ]] && echo "Excluding: '$exception1'"
+	[[ -n "$exception2" ]] && echo "Excluding: '$exception2'"
 
-    # Use ripgrep to find all files that contain the word
-    local files=($(rg -l --fixed-strings "$word_to_replace"))
+	# Use ripgrep to find all files that contain the word
+	local files=($(rg -l --fixed-strings "$word_to_replace"))
 
-    for file in $files; do
-        # Skip binary files (optional)
-        if file "$file" | grep -q 'binary'; then
-            continue
-        fi
+	for file in $files; do
+		# Skip binary files (optional)
+		if file "$file" | grep -q 'binary'; then
+			continue
+		fi
 
-        # Perform in-place replacement using perl for precise matching
-        perl -i -pe '
+		# Perform in-place replacement using perl for precise matching
+		perl -i -pe '
             my $from = $ARGV[0];
             my $to = $ARGV[1];
             my $ex1 = $ARGV[2];
@@ -1908,49 +1854,41 @@ replace_word() {
 
             s/\b$from\b(?!\w)/$to/g if (!defined($ex1) || $_ !~ /\b$ex1\b/) && (!defined($ex2) || $_ !~ /\b$ex2\b/);
         ' "$word_to_replace" "$replace_to" "$exception1" "$exception2" "$file"
-    done
+	done
 
-    echo "Done."
+	echo "Done."
 }
-
 
 #======== Nvim ports commands
 
 # Function to get the current project root using fpr
 get_project_root() {
-    # Run fpr and capture only stdout, stderr will be printed directly to the terminal
-    project_root=$(fpr)
+	# Run fpr and capture only stdout, stderr will be printed directly to the terminal
+	project_root=$(fpr)
 
-    # Capture the exit status of fpr
-    local fpr_exit_code=$?
+	# Capture the exit status of fpr
+	local fpr_exit_code=$?
 
-    # Handle different exit codes of fpr
-    if [[ $fpr_exit_code -eq 1 ]]; then
-        # fpr failed, default to current working directory (pwd)
-        echo "Can't find project root, fpr defaulted to pwd" >&2  # Print error to stderr
-        project_root=$(pwd)  # Default to current working directory
-    elif [[ $fpr_exit_code -ne 0 ]]; then
-        # fpr returned an invalid exit code (exit 2 or 3), print error message to stderr
-        echo "Error: fpr returned an invalid exit code ($fpr_exit_code), exiting." >&2
-        return 1  # Exit the function early, but don't exit the shell session
-    fi
+	# Handle different exit codes of fpr
+	if [[ $fpr_exit_code -eq 1 ]]; then
+		# fpr failed, default to current working directory (pwd)
+		echo "Can't find project root, fpr defaulted to pwd" >&2 # Print error to stderr
+		project_root=$(pwd)                                      # Default to current working directory
+	elif [[ $fpr_exit_code -ne 0 ]]; then
+		# fpr returned an invalid exit code (exit 2 or 3), print error message to stderr
+		echo "Error: fpr returned an invalid exit code ($fpr_exit_code), exiting." >&2
+		return 1 # Exit the function early, but don't exit the shell session
+	fi
 
-    # Check if the output is a valid directory
-    if [[ ! -d "$project_root" ]]; then
-        echo "Project root ($project_root) is not a valid directory, exiting." >&2  # Print error to stderr
-        return 1  # Exit the function early, but don't exit the shell session
-    fi
+	# Check if the output is a valid directory
+	if [[ ! -d "$project_root" ]]; then
+		echo "Project root ($project_root) is not a valid directory, exiting." >&2 # Print error to stderr
+		return 1                                                                   # Exit the function early, but don't exit the shell session
+	fi
 
-    # Return the project root (stdout)
-    echo "$project_root"  # Return the valid path
+	# Return the project root (stdout)
+	echo "$project_root" # Return the valid path
 }
-
-
-
-
-
-
-
 
 # next to the xmods (not implemented here. but it is implemented)
 # alias rvmod="rv $HOME/.config/nvim/scripts/pythonScripts/open_remote_nvim.py"
@@ -1974,21 +1912,17 @@ alias sv3="sv --name=3"
 alias sve="sv --name=Editor"
 alias se="sv --name=Editor"
 
-
-
-
 # -------- Weird stuff V2: Latex Boogaloo
 export CHKTEXRC=/usr/local/etc/chktexrc
 
 send_notification() {
-    $PYTHON_VENV_DIR/pip_venv/bin/python \
-    /home/francois/Documents/PhoneNotification/send_notification.py \
-    --title="$1" --content="$2"
+	$PYTHON_VENV_DIR/pip_venv/bin/python \
+		/home/francois/Documents/PhoneNotification/send_notification.py \
+		--title="$1" --content="$2"
 }
 
 #ignore ctrl + d. so no close
 setopt IGNORE_EOF
-
 
 alias unfuck_sudo="sudo rm /var/run/faillock"
 alias unfuck_sudo_clean="sudo faillock --user=francois --reset"
@@ -1998,7 +1932,6 @@ alias unfuck_sudo_clean="sudo faillock --user=francois --reset"
 # 🔢 Line counter
 # ─────────────────────────────────────────────────────
 
-
 function lcount_tree() {
 	"$HOME/.config/zsh/lcount_tree.py"
 }
@@ -2006,61 +1939,59 @@ function lcount_tree() {
 alias count_lines="lcount_tree"
 
 lcount_total() {
-  local total=0
-  while IFS= read -r lines; do
-    (( total += lines ))
-  done < <(find . -type f -not -path '*/.*' -exec wc -l {} + | awk '$2 != "total" {print $1}')
-  echo $total
+	local total=0
+	while IFS= read -r lines; do
+		((total += lines))
+	done < <(find . -type f -not -path '*/.*' -exec wc -l {} + | awk '$2 != "total" {print $1}')
+	echo $total
 }
 
-lcount1() { find . -type f -exec wc -l {} + ; } # also gets hidden files, so .git fucks
-lcount2() { find . -type f -not -path '*/.*' -exec wc -l {} + ; } # the good one to copy paste to another pc
+lcount1() { find . -type f -exec wc -l {} +; }                   # also gets hidden files, so .git fucks
+lcount2() { find . -type f -not -path '*/.*' -exec wc -l {} +; } # the good one to copy paste to another pc
 lcount3() { find . -type f -not -path '*/.*' -exec wc -l {} + | awk '$2 != "total" {sum += $1} END {print sum}'; }
 #3 just recalc the total. it's less good
 
 lcount() {
-  find . -type f \
-    -not -path '*/.*' \
-    -not -name '*.pyc' \
-    -not -name '*.png' \
-    -not -name '*.iso' \
-    -not -name '*.o' \
-    -not -name '*.bin' \
-    -not -name '*.dump' \
-    -not -name '*.log' \
-    -not -name '*.elf' \
-    -not -name '*.pcm' \
-    -not -name 'compile_commands.json' \
-    -not -name '*.idx' \
-    -not -name '*.txt' \
-    -exec wc -l {} +
+	find . -type f \
+		-not -path '*/.*' \
+		-not -name '*.pyc' \
+		-not -name '*.png' \
+		-not -name '*.iso' \
+		-not -name '*.o' \
+		-not -name '*.bin' \
+		-not -name '*.dump' \
+		-not -name '*.log' \
+		-not -name '*.elf' \
+		-not -name '*.pcm' \
+		-not -name 'compile_commands.json' \
+		-not -name '*.idx' \
+		-not -name '*.txt' \
+		-exec wc -l {} +
 }
-
 
 lcount_type() {
-  if (( $# == 0 )); then
-    echo "Usage: lcount_type ext1 ext2 ..."
-    return 1
-  fi
+	if (($# == 0)); then
+		echo "Usage: lcount_type ext1 ext2 ..."
+		return 1
+	fi
 
-  local find_args=(.)
+	local find_args=(.)
 
-  # build -name patterns for each extension
-  local name_args=()
-  for ext in "$@"; do
-    ext="${ext#.}"  # remove leading dot
-    name_args+=(-o -name "*.$ext")
-  done
-  # remove first -o
-  name_args=("${name_args[@]:1}")
+	# build -name patterns for each extension
+	local name_args=()
+	for ext in "$@"; do
+		ext="${ext#.}" # remove leading dot
+		name_args+=(-o -name "*.$ext")
+	done
+	# remove first -o
+	name_args=("${name_args[@]:1}")
 
-  find "${find_args[@]}" -type f \( "${name_args[@]}" \) \
-    -not -path './.git/*' \
-    -not -name '*.pyc' \
-    -not -name '*.png' \
-    -exec wc -l {} +
+	find "${find_args[@]}" -type f \( "${name_args[@]}" \) \
+		-not -path './.git/*' \
+		-not -name '*.pyc' \
+		-not -name '*.png' \
+		-exec wc -l {} +
 }
-
 
 #------- C alias ------------
 alias c89="gcc -std=c89"
@@ -2070,7 +2001,6 @@ alias c11="gcc -std=c11"
 alias c17="gcc -std=c17"
 alias c18="gcc -std=c18"
 alias c23="gcc -std=c23"
-
 
 # 16-bit cross-compiler
 alias gcc16="ia16-elf-gcc"
@@ -2093,10 +2023,15 @@ alias g++64="x86_64-elf-g++"
 alias as64="x86_64-elf-as"
 alias ld64="x86_64-elf-ld"
 
+function cmake_nvim_prep() {
+	cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake
+	cmake --build build
+	ln -s build/compile_commands.json compile_commands.json
+}
 
 function addsearch() {
-	address="$1" 
-	objdump -d build/myos.bin  | grep "$address" -C5
+	address="$1"
+	objdump -d build/myos.bin | grep "$address" -C5
 }
 
 function partial_compile() {
@@ -2105,101 +2040,91 @@ function partial_compile() {
 	local opt="${3:-0}" # second argument, default to 0
 
 	gcc -S "-O$opt" -masm=intel -fno-asynchronous-unwind-tables \
-    -fno-unwind-tables -fno-exceptions -fno-stack-protector \
-    "$input" -o "$output"
+		-fno-unwind-tables -fno-exceptions -fno-stack-protector \
+		"$input" -o "$output"
 
 }
 
 function objd() {
 	local file="$1"
-    local base="${file%.*}"
-    objdump -D -h -M intel "$file" > "${base}.dump"
+	local base="${file%.*}"
+	objdump -D -h -M intel "$file" >"${base}.dump"
 }
 
-
-
 function c2asm() {
-	# This functions create an .s file. And it's a stripped, but near accesptable assembly file. 
+	# This functions create an .s file. And it's a stripped, but near accesptable assembly file.
 	# with gas intel syntax. And it has the .section and other header stuff
-	# this is a partial compilation. 
+	# this is a partial compilation.
 	if [[ $# -lt 1 || $# -gt 2 ]]; then
 		echo "Usage: c2asm <file.c> [optimisation level]"
 		return 1
 	fi
 
-
-    local src="$1"
+	local src="$1"
 	local opt="${2:-0}" # second argument, default to 0
 
-    if [[ "$src" != *.c ]]; then
-        echo "Error: input file must have .c extension"
-        return 1
-    fi
+	if [[ "$src" != *.c ]]; then
+		echo "Error: input file must have .c extension"
+		return 1
+	fi
 
 	if [[ ! "$opt" =~ ^[0-3]$ ]]; then
 		echo "Error: invalid value '$opt'. Must be 0, 1, 2, or 3." >&2
 		return 1
 	fi
 
+	local out="${src%.c}_O$opt.s"
 
-    local out="${src%.c}_O$opt.s"
-	
-    # If output exists, move it with numbered backup
-    [[ -e "$out" ]] && mv --backup=numbered "$out" "$out.bak"
+	# If output exists, move it with numbered backup
+	[[ -e "$out" ]] && mv --backup=numbered "$out" "$out.bak"
 
 	partial_compile "$src" "$out" "$opt"
 	# gcc -S -O0 -masm=intel -fno-asynchronous-unwind-tables \
- #    -fno-unwind-tables -fno-exceptions -fno-stack-protector \
- #    "$src" -o "$out"
+	#    -fno-unwind-tables -fno-exceptions -fno-stack-protector \
+	#    "$src" -o "$out"
 
-    echo "Assembly written to $out"
+	echo "Assembly written to $out"
 }
 
 function c2asm2() {
-	# this function create a simple .asm file of just the code. 
-	# it output a gas intel syntax. But it won't have the other section. 
+	# this function create a simple .asm file of just the code.
+	# it output a gas intel syntax. But it won't have the other section.
 	# This is an object dump. Not a partial compilation
 	if [[ $# -lt 1 || $# -gt 2 ]]; then
 		echo "Usage: c2asm <file.c> [optimisation level]"
 		return 1
 	fi
 
-
-    local src="$1"
+	local src="$1"
 	local opt="${2:-0}" # second argument, default to 0
 
-    if [[ "$src" != *.c ]]; then
-        echo "Error: input file must have .c extension"
-        return 1
-    fi
-
+	if [[ "$src" != *.c ]]; then
+		echo "Error: input file must have .c extension"
+		return 1
+	fi
 
 	if [[ ! "$opt" =~ ^[0-3]$ ]]; then
 		echo "Error: invalid value '$opt'. Must be 0, 1, 2, or 3." >&2
 		return 1
 	fi
 
-    local out="${src%.c}.o"
-    local asm="${src%.c}_O$opt.asm"
+	local out="${src%.c}.o"
+	local asm="${src%.c}_O$opt.asm"
 
 	# Numbered backup if assembly file exists
-    [[ -e "$asm" ]] && mv --backup=numbered "$asm" "$asm.bak"
+	[[ -e "$asm" ]] && mv --backup=numbered "$asm" "$asm.bak"
 
 	gcc -c "-O$opt" "$src" -o "$out"
-	objdump -d -M intel "$out" > "$asm" 
-	
+	objdump -d -M intel "$out" >"$asm"
+
 	echo "Assembly written to $asm"
 
 }
 
-                              
-                              
-
 # disable control flow ( stop C-s and C-q to cause bug)
 # stty -ixon
 
-
-# tmux sessionizer: 
+# tmux sessionizer:
 bindkey -s '^K' "tmux-sessionizer\n"
 bindkey -s '\eh' "tmux-sessionizer -s 0\n"
 bindkey -s '\eb' "tmux-sessionizer -s 1\n"
@@ -2216,16 +2141,14 @@ alias tmr1="tmux-sessionizer -t Runner 1"
 # these are for session commands, so it's kinda useles for me right now
 # learn what it is used for
 
-
 function org() {
 	rg --color=always --line-number --no-heading --hidden \
-  "$1" $(rg --files-with-matches PATTERN | sort -V)
+		"$1" $(rg --files-with-matches PATTERN | sort -V)
 
 }
 
-
 #---------------------------- ------------ END OF FILE ---------
-# Add this (replace false to  true ) in ~/.p10k.zsh 
+# Add this (replace false to  true ) in ~/.p10k.zsh
 # typeset -g POWERLEVEL9K_STA2TUS_ERROR=true
 
 # typeset -g POWERLEVEL9K_ALWAYS_SHOW_CONTEXT=true
@@ -2234,11 +2157,9 @@ typeset -g POWERLEVEL9K_HOST_FOREGROUND=red
 # To customize prompt, run `p10k configure` or edit ~/.config/zsh/.p10k.zsh.
 [[ ! -f ~/.config/zsh/.p10k.zsh ]] || source ~/.config/zsh/.p10k.zsh
 
-
 # not needed
 
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 [[ -f /home/francois/.config/.dart-cli-completion/zsh-config.zsh ]] && . /home/francois/.config/.dart-cli-completion/zsh-config.zsh || true
 ## [/Completion]
-
