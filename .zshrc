@@ -213,6 +213,42 @@ hyprland_switch() {
 	tmux setenv -g HYPRLAND_INSTANCE_SIGNATURE "$HYPRLAND_INSTANCE_SIGNATURE"
 }
 
+hyprbind() {
+	local modmask=0
+	local key=""
+
+	for arg in "$@"; do
+		case "${arg:u}" in
+		SHIFT) modmask=$((modmask | 1)) ;;
+		CAPS) modmask=$((modmask | 2)) ;;
+		CTRL) modmask=$((modmask | 4)) ;;
+		ALT) modmask=$((modmask | 8)) ;;
+		MOD2) modmask=$((modmask | 16)) ;;
+		MOD3) modmask=$((modmask | 32)) ;;
+		SUPER) modmask=$((modmask | 64)) ;;
+		MOD5) modmask=$((modmask | 128)) ;;
+		*)
+			if [[ -n "$key" ]]; then
+				echo "Error: multiple keys specified: $key and $arg"
+				return 1
+			fi
+			key="${arg:u}"
+			;;
+		esac
+	done
+
+	if [[ -z "$key" ]]; then
+		echo "Usage: hyprbind [SHIFT] [CTRL] [ALT] [SUPER] KEY"
+		return 1
+	fi
+
+	echo "Looking for: modmask=$modmask key=$key"
+
+	hyprctl binds -j |
+		jq --arg key "$key" --argjson modmask "$modmask" \
+			'.[] | select(.modmask == $modmask and (.key | ascii_upcase) == $key)'
+}
+
 # ─────────────────────────────────────────────────────
 # 🚀 3️⃣ Python Virtual Environments
 # ─────────────────────────────────────────────────────
@@ -572,7 +608,8 @@ alias cmod="$EDITOR $EDITOR_FLAG ~/.config/conky/show_all/show_all_conf"
 alias fmod="$EDITOR $EDITOR_FLAG ~/.config/fish/config.fish"
 alias gmod="$EDITOR ~/.config/gdb/.gdbinit"
 alias gdbmod="$EDITOR ~/.config/gdb/.gdbinit"
-alias hmod="$EDITOR $EDITOR_FLAG ~/.config/hypr/hyprland.conf ~/.config/hypr/hyprland.lua"
+# alias hmod="$EDITOR $EDITOR_FLAG ~/.config/hypr/hyprland.conf ~/.config/hypr/hyprland.lua"
+alias hmod="$EDITOR $EDITOR_FLAG ~/.config/hypr/hyprland.lua"
 alias imod="$EDITOR $EDITOR_FLAG $HOME/.config/i3/config"
 alias irmod="$EDITOR $EDITOR_FLAG ~/.config/ironbar/"
 alias kamod="$EDITOR $EDITOR_FLAG ~/.config/kanata/kanata.kbd"
@@ -1413,6 +1450,14 @@ esplist() {
 	arduino-cli board list
 }
 
+# Vivado
+export _JAVA_AWT_WM_NONREPARENTING=1
+if [[ ":$PATH:" != *":/mnt/ArchFast/BigSoftware/Vivado/2025.2/Vivado/bin:"* ]]; then
+	if ! command -v vivado &>/dev/null; then
+		source /mnt/ArchFast/BigSoftware/Vivado/2025.2/Vivado/settings64.sh
+	fi
+fi
+
 # ─────────────────────────────────────────────────────
 # 🌎 🔧 1️⃣0️⃣ System Paths (Perl Setup)
 # ─────────────────────────────────────────────────────
@@ -2129,8 +2174,15 @@ bindkey -s '^K' "tmux-sessionizer\n"
 bindkey -s '\eh' "tmux-sessionizer -s 0\n"
 bindkey -s '\eb' "tmux-sessionizer -s 1\n"
 bindkey -s '\ec' "tmux-sessionizer -s 2\n"
+bindkey -s '\ev' "tmux-sessionizer -s 3\n"
+
+# The 3 aboves make it appear in a new random Session (Same screen/window)
+
+# The 2 belloe make it appear in the Runner session. (Which is the Workspace 21 terminal)
 bindkey -s '\en' "tmux-sessionizer -t Runner 0\n"
 bindkey -s '\et' "tmux-sessionizer -t Runner 1\n"
+bindkey -s '\ef' "tmux-sessionizer -t Runner 2\n"
+bindkey -s '\eg' "tmux-sessionizer -t Runner 3\n"
 
 alias tms="tmux-sessionizer"
 alias tms0="tmux-sessionizer -s 0"
