@@ -1452,10 +1452,18 @@ esplist() {
 
 # Vivado
 export _JAVA_AWT_WM_NONREPARENTING=1
-if [[ ":$PATH:" != *":/mnt/ArchFast/BigSoftware/Vivado/2025.2/Vivado/bin:"* ]]; then
-	if ! command -v vivado &>/dev/null; then
-		source /mnt/ArchFast/BigSoftware/Vivado/2025.2/Vivado/settings64.sh
-	fi
+
+vivado_laptop="$HOME/BigSoftware/AMD/2025.2/Vivado"
+vivado_desktop="/mnt/ArchFast/BigSoftware/Vivado/2025.2/Vivado"
+
+if [[ -f "$vivado_laptop/settings64.sh" ]] &&
+	[[ ":$PATH:" != *":$vivado_laptop/bin:"* ]]; then
+	source "$vivado_laptop/settings64.sh"
+fi
+
+if [[ -f "$vivado_desktop/settings64.sh" ]] &&
+	[[ ":$PATH:" != *":$vivado_desktop/bin:"* ]]; then
+	source "$vivado_desktop/settings64.sh"
 fi
 
 # ─────────────────────────────────────────────────────
