@@ -105,6 +105,10 @@ sudo() {
 	fi
 }
 
+vsg() {
+	~/.local/share/nvim/mason/bin/vsg -c ~/.config/vsg/config.yaml -f "$1"
+}
+
 # ─────────────────────────────────────────────────────
 # 🛠️  Initialize CLI Tools (With Warnings)
 # ─────────────────────────────────────────────────────
@@ -1425,7 +1429,7 @@ read_esp_partition() {
 	local partition="${1:-.pio/build/esp32s3/partitions.bin}"
 
 	if [ -z "${IDF_PATH:-}" ]; then
-		export IDF_PATH="/home/francois/Documents/GitClones/esp-idf"
+		export IDF_PATH="$HOME/Documents/GitClones/esp-idf"
 	fi
 
 	"$IDF_PATH/components/partition_table/gen_esp32part.py" "$partition"
@@ -1490,23 +1494,111 @@ prepend_path() {
 }
 
 # Prepend directories safely
-prepend_path PATH "/home/francois/perl5/bin"
-prepend_path PERL5LIB "/home/francois/perl5/lib/perl5"
-prepend_path PERL_LOCAL_LIB_ROOT "/home/francois/perl5"
+prepend_path PATH "$HOME/perl5/bin"
+prepend_path PERL5LIB "$HOME/perl5/lib/perl5"
+prepend_path PERL_LOCAL_LIB_ROOT "$HOME/perl5"
 
 export PATH PERL5LIB PERL_LOCAL_LIB_ROOT
 
 # The following two are static strings, just export them
-PERL_MB_OPT="--install_base \"/home/francois/perl5\""
-PERL_MM_OPT="INSTALL_BASE=/home/francois/perl5"
+PERL_MB_OPT="--install_base \"$HOME/perl5\""
+PERL_MM_OPT="INSTALL_BASE=$HOME/perl5"
 
 export PERL_MB_OPT PERL_MM_OPT
 
-# PATH="/home/francois/perl5/bin${PATH:+:${PATH}}"; export PATH;
-# PERL5LIB="/home/francois/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
-# PERL_LOCAL_LIB_ROOT="/home/francois/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
-# PERL_MB_OPT="--install_base \"/home/francois/perl5\""; export PERL_MB_OPT;
-# PERL_MM_OPT="INSTALL_BASE=/home/francois/perl5"; export PERL_MM_OPT;
+# PATH="$HOME/perl5/bin${PATH:+:${PATH}}"; export PATH;
+# PERL5LIB="$HOME/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
+# PERL_LOCAL_LIB_ROOT="$HOME/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
+# PERL_MB_OPT="--install_base \"$HOME/perl5\""; export PERL_MB_OPT;
+# PERL_MM_OPT="INSTALL_BASE=$HOME/perl5"; export PERL_MM_OPT;
+
+# ============================ SSH and VPN
+
+friend_access() {
+	if (($# != 1)); then
+		echo "Usage: friend_access <directory>" >&2
+		return 1
+	fi
+
+	local dir=$1
+	dir="$(/usr/bin/realpath "$dir")" || return 1
+
+	if [[ ! -d "$dir" ]]; then
+		echo "Not a directory: $dir" >&2
+		return 1
+	fi
+
+	# Make francois the owner and friend the group.
+	/usr/bin/sudo /usr/bin/chown -R francois:friend "$dir" || return 1
+
+	# Allow friend to traverse the parent directories.
+	local path=$dir
+	while [[ "$path" != "/" ]]; do
+		/usr/bin/sudo /usr/bin/setfacl -m g:friend:--x "$path" || return 1
+		path=${path:h}
+	done
+
+	# Existing directories:
+	#   friend = read/write/traverse
+	/usr/bin/find "$dir" -type d \
+		-exec /usr/bin/sudo /usr/bin/setfacl -m g:friend:rwx {} + || return 1
+
+	# Existing files:
+	#   friend = read/write
+	/usr/bin/find "$dir" -type f \
+		-exec /usr/bin/sudo /usr/bin/setfacl -m g:friend:rw {} + || return 1
+
+	# Default ACLs for newly created content.
+	/usr/bin/find "$dir" -type d \
+		-exec /usr/bin/sudo /usr/bin/setfacl -d -m g:friend:rwx {} + || return 1
+
+	# build.sh:
+	#   friend = read/write/execute
+	if [[ -f "$dir/build.sh" ]]; then
+		/usr/bin/sudo /usr/bin/setfacl -m g:friend:rwx "$dir/build.sh" || return 1
+	fi
+
+	# Set friend-runner's login directory.
+	/usr/bin/sudo /usr/bin/sed -i \
+		"/^#login dir cd$/{n;s|^cd .*|cd -- '$dir'|;}" \
+		/home/friend-runner/.bashrc || return 1
+
+}
+
+friend_remove() {
+	if (($# != 1)); then
+		echo "Usage: friend_remove <directory>" >&2
+		return 1
+	fi
+
+	local dir=$1
+	dir="$(/usr/bin/realpath "$dir")" || return 1
+
+	if [[ ! -d "$dir" ]]; then
+		echo "Not a directory: $dir" >&2
+		return 1
+	fi
+
+	# Remove friend ACLs from existing files.
+	/usr/bin/find "$dir" -type f \
+		-exec /usr/bin/sudo /usr/bin/setfacl -x g:friend {} + || return 1
+
+	# Remove friend ACLs from existing directories.
+	/usr/bin/find "$dir" -type d \
+		-exec /usr/bin/sudo /usr/bin/setfacl -x g:friend {} + || return 1
+
+	# Remove default friend ACLs.
+	/usr/bin/find "$dir" -type d \
+		-exec /usr/bin/sudo /usr/bin/setfacl -x d:g:friend {} + || return 1
+
+	# Remove the traversal ACL from the target directory.
+	/usr/bin/sudo /usr/bin/setfacl -x g:friend "$dir" || return 1
+
+	# Reset friend-runner's login directory.
+	/usr/bin/sudo /usr/bin/sed -i \
+		"/^#login dir cd$/{n;s|^cd .*|cd ~|;}" \
+		/home/friend-runner/.bashrc || return 1
+}
 
 # ─────────────────────────────────────────────────────
 # 🔧 1️⃣1️⃣ General / Miscellaneous Shortcuts
@@ -1970,7 +2062,7 @@ export CHKTEXRC=/usr/local/etc/chktexrc
 
 send_notification() {
 	$PYTHON_VENV_DIR/pip_venv/bin/python \
-		/home/francois/Documents/PhoneNotification/send_notification.py \
+		$HOME/Documents/PhoneNotification/send_notification.py \
 		--title="$1" --content="$2"
 }
 
@@ -2221,5 +2313,5 @@ typeset -g POWERLEVEL9K_HOST_FOREGROUND=red
 
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
-[[ -f /home/francois/.config/.dart-cli-completion/zsh-config.zsh ]] && . /home/francois/.config/.dart-cli-completion/zsh-config.zsh || true
+[[ -f $HOME/.config/.dart-cli-completion/zsh-config.zsh ]] && . $HOME/.config/.dart-cli-completion/zsh-config.zsh || true
 ## [/Completion]
