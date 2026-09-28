@@ -45,9 +45,17 @@ PKGS=(
 	coreutils
 	curl
 	wget
+)
+
+ARCH_PKG=(
 	xclip
 	wl-clipboard
 	neofetch
+)
+
+ALL_PKGS=(
+	"${PKGS[@]}"
+	"${ARCH_PKG[@]}"
 )
 
 # Install packages
@@ -61,7 +69,7 @@ if [[ "$SYSTEM" == "arch" ]]; then
 		paru -S --needed --noconfirm "${PKGS[@]}"
 	else
 		echo "Falling back to pacman..."
-		sudo pacman -S --needed "${PKGS[@]}"
+		sudo pacman -S --needed "${ALL_PKGS[@]}"
 	fi
 
 elif [[ "$SYSTEM" == "fedora" ]]; then

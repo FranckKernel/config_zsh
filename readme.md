@@ -27,6 +27,8 @@ configuration works well.
 Also, to install do:
 
 ```bash
+# Run this in bash preferably
+
 # Backup existing ~/.config/zsh if it exists, using numbered backups (~1, ~2, etc.)
 [ -d ~/.config/zsh ] && mv --backup=numbered ~/.config/zsh ~/.config/zsh_backup
 
@@ -46,6 +48,12 @@ chmod 744 ./install_commands.sh
 # admin privilede. It's supposed to just work for mac and arch. (I use arch only, mac was for friends)
 # So, it should work on mac.
 
+[ -f ~/.zshrc ] && mv --backup=numbered ~/.zshrc ~/.zshrc.bak
+
+# must do it first, because it will change the zsh config
+[ -f ~/.p10k.zsh ] && mv --backup=numbered ~/.p10k.zsh ~/.p10k.zsh.bak
+ln -s ~/.config/zsh/.p10k.zsh ~/.p10k.zsh
+
 # Backup existing ~/.zshrc if it exists, using numbered backups
 [ -f ~/.zshrc ] && mv --backup=numbered ~/.zshrc ~/.zshrc.bak
 # Create a symbolic link only if the cloned .zshrc exists
@@ -57,20 +65,12 @@ ln -s ~/.config/zsh/.zshrc ~/.zshrc
 # ----- End of Optional -----
 
 
-#mkdir -p $HOME/MainPython_Virtual_Environment # Old one, for pip venv, deprecated.
-mkdir -p $HOME/PythonVenv                     # New one, for pip venv
-python3 -m venv "$HOME/PythonVenv/pip_venv/"
-source "$HOME/PythonVenv/pip_venv/bin/activate"
-#btw, if your system is dumb like mac, you should add a softlink so
-# python -> python3
 
 
 # To get my look without having to do the configuration of p10k (It's easy to do, I recommend you try it)
-[ -f ~/.p10k.zsh ] && mv --backup=numbered ~/.p10k.zsh ~/.p10k.zsh.bak
-ln -s ~/.config/zsh/.p10k.zsh ~/.p10k.zsh
 
-pip install virtualenvwrapper
-zsh
+# pip install virtualenvwrapper
+# zsh
 ```
 
 and checkout the ~/.zshrc or ~/.config/.zshrc to see what it has
