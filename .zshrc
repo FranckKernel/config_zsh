@@ -2293,6 +2293,29 @@ alias tmr1="tmux-sessionizer -t Runner 1"
 # these are for session commands, so it's kinda useles for me right now
 # learn what it is used for
 
+tmux_setup() {
+	local dir="$(pwd)"
+	local session confirm
+
+	for session in Runner Editor Debugger; do
+		if tmux has-session -t "$session" 2>/dev/null; then
+			read -q "confirm?Session '$session' already exists. Kill it? [y/N] "
+			echo
+			if [[ "$confirm" == "y" ]]; then
+				tmux kill-session -t "$session"
+				echo "Killed existing session: $session"
+				tmux new-session -d -s "$session" -c "$dir"
+				echo "Created session: $session"
+			else
+				echo "Skipped '$session' — leaving existing session untouched."
+			fi
+		else
+			tmux new-session -d -s "$session" -c "$dir"
+			echo "Created session: $session"
+		fi
+	done
+}
+
 function org() {
 	rg --color=always --line-number --no-heading --hidden \
 		"$1" $(rg --files-with-matches PATTERN | sort -V)
