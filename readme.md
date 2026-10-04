@@ -33,7 +33,7 @@ Also, to install do:
 [ -d ~/.config/zsh ] && mv --backup=numbered ~/.config/zsh ~/.config/zsh_backup
 
 # Clone the repository if ~/.config/zsh does not exist
-git clone https://github.com/PoutineSyropErable/config_zsh ~/.config/zsh
+git clone https://github.com/FranckKernel/config_zsh ~/.config/zsh
 
 # Backup existing ~/.zshrc if it exists, using numbered backups
 [ -f ~/.zshrc ] && mv --backup=numbered ~/.zshrc ~/.zshrc.bak
