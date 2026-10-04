@@ -28,6 +28,12 @@ Also, to install do:
 
 ```bash
 # Run this in bash preferably
+# on macos: 
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    brew install coreutils
+    alias mv='gmv'
+fi
+
 
 # Backup existing ~/.config/zsh if it exists, using numbered backups (~1, ~2, etc.)
 [ -d ~/.config/zsh ] && mv --backup=numbered ~/.config/zsh ~/.config/zsh_backup
@@ -65,6 +71,7 @@ ln -s ~/.config/zsh/.zshrc ~/.zshrc
 # ----- End of Optional -----
 
 
+# We must also install fonts. 
 
 
 # To get my look without having to do the configuration of p10k (It's easy to do, I recommend you try it)

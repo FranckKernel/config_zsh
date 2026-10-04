@@ -1609,6 +1609,7 @@ friend_remove() {
 unalias r 2>/dev/null # it's for redoing. But fuck that, who needs redoing commands, just up arrow and enter
 # Reload Zsh configuration
 alias r="source ~/.zshrc"
+alias kittyr="kill -SIGUSR1 $(pgrep -x kitty)"
 
 # Clear terminal. Like on windows and it's faster to type
 alias cls="clear"
