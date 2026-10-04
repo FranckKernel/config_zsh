@@ -45,6 +45,8 @@ PKGS=(
 	coreutils
 	curl
 	wget
+	luarocks
+	# luarocks is for neovim image.nvim, but fuck it, putting it here
 )
 
 ARCH_PKG=(
