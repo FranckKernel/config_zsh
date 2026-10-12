@@ -51,8 +51,13 @@ PKGS=(
 	wget
 	luarocks
 	tree-sitter-cli
+	npm
 	# luarocks is for neovim image.nvim, but fuck it, putting it here
 )
+
+# Need ruby/gem for solargraph
+# Need go for gopls
+# But it's extra, get it yourself
 
 ARCH_PKG=(
 	xclip
@@ -67,6 +72,7 @@ DEBIAN_EXTRA_PKG=(
 	libmagic-dev
 	unzip
 	fontconfig
+	python3-venv
 )
 
 ALL_PKGS=(
