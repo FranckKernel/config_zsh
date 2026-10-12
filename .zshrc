@@ -59,6 +59,10 @@ source $ZSH/oh-my-zsh.sh
 export TERMINAL=kitty
 export EDITOR=nvim
 
+# Pretty color in man pages
+export MANROFFOPT="-c"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
 # Determine the flag based on the editor
 if [[ "$EDITOR" == "nvim" ]]; then
 	EDITOR_FLAG="--cmd \"autocmd VimEnter * CdHere\"" # Only for nvim
@@ -2075,6 +2079,14 @@ setopt IGNORE_EOF
 alias unfuck_sudo="sudo rm /var/run/faillock"
 alias unfuck_sudo_clean="sudo faillock --user=francois --reset"
 # need to login as recovery
+
+document_outline_getter() {
+	pip_activate embedded || return
+	"$HOME/.config/zsh/document_outline_getter.py" "$@"
+	local rc=$?
+	lvenv
+	return $rc
+}
 
 # ─────────────────────────────────────────────────────
 # 🔢 Line counter

@@ -55,20 +55,67 @@ ARCH_PKG=(
 	neofetch
 )
 
+DEBIAN_EXTRA_PKG=(
+	build-essential
+	pkg-config
+	libmagic-dev
+	unzip
+	fontconfig
+)
+
 ALL_PKGS=(
 	"${PKGS[@]}"
 	"${ARCH_PKG[@]}"
 )
 
+DEBIAN_PKG=(
+	"${PKGS[@]}"
+	"${DEBIAN_EXTRA_PKG[@]}"
+)
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+replace_pkg() {
+	local -n arr=$1
+	local old=$2 new=$3 i
+	for i in "${!arr[@]}"; do
+		if [[ "${arr[i]}" == "$old" ]]; then
+			arr[i]="$new"
+		fi
+	done
+}
+
+pkg_install() {
+	if have yay; then
+		yay -S --needed --noconfirm "$@"
+	elif have paru; then
+		paru -S --needed --noconfirm "$@"
+	elif have pacman; then
+		sudo pacman -S --needed --noconfirm "$@"
+	elif have dnf; then
+		sudo dnf install -y "$@"
+	elif have brew; then
+		brew install "$@"
+	elif have zypper; then
+		sudo zypper install -y "$@"
+	elif have apt; then
+		sudo apt update
+		sudo apt install -y "$@"
+	else
+		echo "no supported package manager found" >&2
+		return 1
+	fi
+}
+
 # Install packages
 if [[ "$SYSTEM" == "arch" ]]; then
 	echo -e "\n\n--------Installing Arch Linux Packages -------------\n\n"
-	if command -v yay >/dev/null 2>&1; then
+	if have yay; then
 		echo "Using yay to install packages..."
-		yay -S --needed --noconfirm "${PKGS[@]}"
-	elif command -v paru >/dev/null 2>&1; then
+		yay -S --needed --noconfirm "${ALL_PKGS[@]}"
+	elif have paru; then
 		echo "Using paru to install packages..."
-		paru -S --needed --noconfirm "${PKGS[@]}"
+		paru -S --needed --noconfirm "${ALL_PKGS[@]}"
 	else
 		echo "Falling back to pacman..."
 		sudo pacman -S --needed "${ALL_PKGS[@]}"
@@ -86,12 +133,17 @@ elif [[ "$SYSTEM" == "macOS" ]]; then
 else
 	echo -e "\n\n--------Installing Other Linux Packages -------------\n\n"
 	# Try apt (Debian/Ubuntu), zypper (openSUSE), or pacman fallback
-	if command -v apt >/dev/null 2>&1; then
+	if have apt; then
+		echo -e "\n\n =========== We are on DEBIAN ========= \n\n"
 		sudo apt update
-		sudo apt install -y "${PKGS[@]}"
-	elif command -v zypper >/dev/null 2>&1; then
+		replace_pkg DEBIAN_PKG fd fd-find
+		sudo apt install -y "${DEBIAN_PKG[@]}"
+		mkdir -p ~/.local/bin
+		ln -sf "$(command -v fdfind)" ~/.local/bin/fd
+		ln -sf "$(command -v batcat)" ~/.local/bin/bat
+	elif have zypper; then
 		sudo zypper install -y "${PKGS[@]}"
-	elif command -v pacman >/dev/null 2>&1; then
+	elif have pacman; then
 		sudo pacman -S --needed "${PKGS[@]}"
 	else
 		echo "No known package manager found. Please install manually: ${PKGS[*]}"
